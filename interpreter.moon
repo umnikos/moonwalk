@@ -28,16 +28,6 @@ pop = ->
 -- forth code is a list of words to be evaluated
 dictionary = {}
 
-dictionary["one"] = {
-	type: "lua"
-	body: "push(1)"
-}
-
-dictionary["print"] = {
-	type: "lua"
-	body: "print(pop())"
-}
-
 -- definitions recursively call eval so here it is
 local eval
 
@@ -110,6 +100,34 @@ dictionary[":"] = {
 	'
 }
 
+dictionary["::"] = {
+	type: "lua"
+	body: '
+		local name
+		name = get_word()
+		local body
+		body = {}
+		local length
+		length = 0
+		while true do
+			local word
+			word = get_word()
+			if word == ";;" then
+				-- finish definition
+				dictionary[name] = {
+					type="lua",
+					-- FIXME: tabs get replaced by spaces
+					body=table.concat(body, " ")
+				}
+				break
+			else
+				-- add word to definition
+				length = length + 1
+				body[length] = word
+			end
+		end
+	'
+}
 
 
 -- REPL
