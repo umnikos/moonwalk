@@ -64,10 +64,17 @@ eval = (name) ->
 
 -- parsing
 -- currently just makes a list of words
-parse = ->
-	[word for word in string.gmatch program, "([^%s]+)"]
+parsed = [word for word in string.gmatch program, "([^%s]+)"]
+current_word = 0
 
-
-eval_forth parse!
-
+get_word = ->
+	current_word += 1
+	parsed[current_word]
+	
+-- REPL
+while true do
+	word = get_word!
+	if not word then
+		break
+	eval word
 
