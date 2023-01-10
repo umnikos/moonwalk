@@ -15,7 +15,7 @@ push = (v) ->
 	data_stack[stack_index] = v
 pop = ->
 	if stack_index == 0 then 
-		print "ERROR POPPING!"
+		error "ERROR POPPING!"
 		return
 	stack_index -= 1
 	data_stack[stack_index+1]
@@ -60,7 +60,7 @@ eval = (name) ->
 	else if type == "forth" then
 		eval_forth body
 	else
-		print "EVAL TYPE ERROR"
+		error "EVAL TYPE ERROR"
 
 -- parsing
 -- currently just makes a list of words
