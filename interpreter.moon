@@ -38,6 +38,9 @@ dictionary["print"] = {
 	body: "print(pop())"
 }
 
+-- definitions recursively call eval so here it is
+local eval
+
 -- parsing
 -- currently just makes a list of words
 parsed = [word for word in string.gmatch program, "([^%s]+)"]
@@ -60,7 +63,6 @@ eval_lua = (body) ->
 	setfenv f, env
 	f!
 
-local eval
 eval_forth = (body) -> 
 	for word in *body
 		eval word
