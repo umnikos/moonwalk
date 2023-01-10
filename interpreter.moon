@@ -2,10 +2,11 @@ import open from io
 
 -- get the code as a string
 file = open "test.forth", "r"
-program = file\read "*a"
+program = (file\read "*a")\gsub("\n"," \n ")
 
 -- sigil helper function
 alphanumeric = (c) -> if c\match("%w") then true else false 
+entirely_whitespace = (s) -> if s\match("[^%s]") then false else true
 
 -- data stack
 data_stack = {}
@@ -33,11 +34,13 @@ local eval
 
 -- parsing
 -- currently just makes a list of words
-parsed = [word for word in string.gmatch program, "([^%s]+)"]
+parsed = [word for word in string.gmatch program, "([^ ]+)"]
 current_word = 0
 
 get_word = ->
 	current_word += 1
+	if not parsed[current_word] then
+		error "RAN OUT OF WORDS"
 	parsed[current_word]
 
 unget_word = (word) ->
@@ -63,6 +66,8 @@ eval_forth = (body) ->
 		unget_word word
 
 eval = (name) -> 
+	if not dictionary[name] then
+		error "UNDEFINED WORD"
 	type = dictionary[name].type
 	body = dictionary[name].body
 	if type == "lua" then
@@ -116,7 +121,6 @@ dictionary["::"] = {
 				-- finish definition
 				dictionary[name] = {
 					type="lua",
-					-- FIXME: tabs get replaced by spaces
 					body=table.concat(body, " ")
 				}
 				break
@@ -135,5 +139,8 @@ while true do
 	word = get_word!
 	if not word then
 		break
-	eval word
+	if entirely_whitespace word then
+		pass
+	else
+		eval word
 
