@@ -50,6 +50,10 @@ get_word = ->
 	current_word += 1
 	parsed[current_word]
 
+unget_word = (word) ->
+	parsed[current_word] = word
+	current_word -= 1
+
 -- evaluation of lua and forth code
 eval_lua = (body) ->
 	f = loadstring body
@@ -59,13 +63,14 @@ eval_lua = (body) ->
 	env.push = push
 	env.pop = pop
 	env.get_word = get_word
+	env.unget_word = unget_word
 	env.dictionary = dictionary
 	setfenv f, env
 	f!
 
 eval_forth = (body) -> 
-	for word in *body
-		eval word
+	for word in *body[(table.getn body),1,-1]
+		unget_word word
 
 eval = (name) -> 
 	type = dictionary[name].type
@@ -98,7 +103,6 @@ dictionary[":"] = {
 				break
 			else
 				-- add word to definition
-				-- TODO - immediate words
 				length = length + 1
 				body[length] = word
 			end
