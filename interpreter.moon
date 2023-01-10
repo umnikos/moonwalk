@@ -144,3 +144,4 @@ while true do
 	else
 		eval word
 
+-- TODO: make debugging programs easier.
