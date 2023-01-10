@@ -38,12 +38,25 @@ dictionary["print"] = {
 	body: "print(pop())"
 }
 
+-- parsing
+-- currently just makes a list of words
+parsed = [word for word in string.gmatch program, "([^%s]+)"]
+current_word = 0
+
+get_word = ->
+	current_word += 1
+	parsed[current_word]
+
 -- evaluation of lua and forth code
 eval_lua = (body) ->
 	f = loadstring body
+	if not f then
+		error "INVALID LUA DEFINITION"
 	env = _G
 	env.push = push
 	env.pop = pop
+	env.get_word = get_word
+	env.dictionary = dictionary
 	setfenv f, env
 	f!
 
@@ -62,15 +75,37 @@ eval = (name) ->
 	else
 		error "EVAL TYPE ERROR"
 
--- parsing
--- currently just makes a list of words
-parsed = [word for word in string.gmatch program, "([^%s]+)"]
-current_word = 0
+dictionary[":"] = {
+	type: "lua"
+	body: '
+		local name
+		name = get_word()
+		local body
+		body = {}
+		local length
+		length = 0
+		while true do
+			local word
+			word = get_word()
+			if word == ";" then
+				-- finish definition
+				dictionary[name] = {
+					type="forth",
+					body=body
+				}
+				break
+			else
+				-- add word to definition
+				-- TODO - immediate words
+				length = length + 1
+				body[length] = word
+			end
+		end
+	'
+}
 
-get_word = ->
-	current_word += 1
-	parsed[current_word]
-	
+
+
 -- REPL
 while true do
 	word = get_word!
