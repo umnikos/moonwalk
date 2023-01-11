@@ -68,7 +68,7 @@ eval_forth = (body) ->
 
 eval = (name) -> 
 	if not dictionary[name] then
-		error "UNDEFINED WORD"
+		error "UNDEFINED WORD: "..name
 	type = dictionary[name].type
 	body = dictionary[name].body
 	if type == "lua" then
@@ -76,7 +76,7 @@ eval = (name) ->
 	else if type == "forth" then
 		eval_forth body
 	else
-		error "EVAL TYPE ERROR"
+		error "EVAL TYPE ERROR: "..name
 
 dictionary[":"] = {
 	type: "lua"

@@ -57,7 +57,12 @@
 	end
 ;;
 : loop{ # 1 # 0 div times{ ;
+:: dup 
+	local x = pop()
+	push(x)
+	push(x)
+;;
 
 
-: hi # 1 # 1 add # 3 mul print ;
-loop{ hi }
+: hi # 1 # 1 add # 3 mul ;
+hi loop{ dup print # 1 add }
