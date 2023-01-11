@@ -48,18 +48,21 @@ unget_word = (word) ->
 	parsed[current_word] = word
 	current_word -= 1
 
+-- user-defined lua functions, not to be called from forth but from lua
+user_env = {}
+setmetatable user_env, {__index: _G}
+user_env.push = push
+user_env.pop = pop
+user_env.get_word = get_word
+user_env.unget_word = unget_word
+user_env.dictionary = dictionary
+
 -- evaluation of lua and forth code
 eval_lua = (body) ->
 	f = loadstring body
 	if not f then
 		error "INVALID LUA DEFINITION"
-	env = _G
-	env.push = push
-	env.pop = pop
-	env.get_word = get_word
-	env.unget_word = unget_word
-	env.dictionary = dictionary
-	setfenv f, env
+	setfenv f, user_env
 	f!
 
 eval_forth = (body) -> 
@@ -146,3 +149,5 @@ while true do
 		eval word
 
 -- TODO: make debugging programs easier.
+
+-- TODO: FIGURE OUT HOW TO SERIALIZE FUNCTIONS IN THE USER ENVIRONMENT

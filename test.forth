@@ -12,6 +12,25 @@
 	push(x/y)
 ;;
 :: # push(tonumber(get_word())) ;;
+:: $
+	function length(x)
+		return table.getn(x)
+	end
+	function unget_block(block)
+		local len = length(block)
+		while len > 0 do
+			unget_word(block[len])
+			len = len - 1
+		end
+	end
+	function unget_block_body(block) 
+		local len = length(block)-1
+		while len > 1 do
+			unget_word(block[len])
+			len = len - 1
+		end
+	end
+;; $
 :: {
 	local block = {}
 	block[1] = "{"
@@ -33,12 +52,6 @@
 	end
 	push(block)
 ;;
-:: eval_block
-	-- TODO
-;;
-:: unget_block 
-	-- TODO
-;;
 :: times
 	local iterations = pop()
 	local block = pop()
@@ -46,17 +59,8 @@
 		unget_word("times")
 		unget_word(tostring(iterations-1))
 		unget_word("#")
-		local len = table.getn(block)
-		local templen = len
-		while len > 0 do
-			unget_word(block[len])
-			len = len - 1
-		end
-		len = templen-1
-		while len > 1 do
-			unget_word(block[len])
-			len = len - 1
-		end
+		unget_block(block)
+		unget_block_body(block)
 	end
 ;;
 : inf # 1 # 0 div ;
@@ -84,12 +88,7 @@
 	else
 		selected = else_case
 	end
-	local block = selected
-	local len = table.getn(block)-1
-	while len > 1 do
-		unget_word(block[len])
-		len = len - 1
-	end
+	unget_block_body(selected)
 ;;
 : if { } ifelse ;
 
