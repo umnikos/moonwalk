@@ -1,7 +1,6 @@
-:: one push(1) ;;
 :: print print(pop()) ;;
 :: add push(pop()+pop()) ;;
-:: mul push(pop()+pop()) ;;
+:: mul push(pop()*pop()) ;;
 :: sub 
 	local y = pop()
 	local x = pop()
@@ -60,5 +59,5 @@
 : loop{ # 1 # 0 div times{ ;
 
 
-: hi one one add one sub print ;
+: hi # 1 # 1 add # 3 mul print ;
 loop{ hi }
