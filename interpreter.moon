@@ -2,7 +2,7 @@ import open from io
 
 -- get the code as a string
 file = open "test.forth", "r"
-program = (file\read "*a")\gsub("\n"," \n ")
+program = (file\read "*a")\gsub("([^%S ]+)"," %1 ")
 
 -- sigil helper function
 alphanumeric = (c) -> if c\match("%w") then true else false 
