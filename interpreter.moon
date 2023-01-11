@@ -39,8 +39,9 @@ current_word = 0
 
 get_word = ->
 	current_word += 1
-	if not parsed[current_word] then
-		error "RAN OUT OF WORDS"
+	-- TODO: error handling in the callers, not the callee
+	-- if not parsed[current_word] then
+	--	 error "RAN OUT OF WORDS"
 	parsed[current_word]
 
 unget_word = (word) ->
