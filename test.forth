@@ -12,51 +12,49 @@
 	push(x/y)
 ;;
 :: # push(tonumber(get_word())) ;;
-:: times{
-	local iterations = pop()
-	local code
-	code = {}
-	local len
-	len = 0
-	local depth
-	depth = 1
+:: {
+	local block = {}
+	block[1] = "{"
+	local len = 1
+	local depth = 1
 	while true do
-		local word
-		word = get_word()
-		if word:match("{") then
+		local word = get_word()
+		if word == "{" then
 			depth = depth + 1
-		end
-		if word:match("}") then
+	    end
+		if word == "}" then
 			depth = depth - 1
-		end
+	    end
+		len = len + 1
+		block[len] = word
 		if depth == 0 then
-			if iterations <= 0 then
-				break
-			end
-			-- time for magic
-			unget_word("}")
-			local templen = len
-			while len > 0 do
-				unget_word(code[len])
-				len = len - 1
-			end
-			unget_word("times{")
-			unget_word(tostring(iterations-1))
-			unget_word("#")
-			len = templen
-			while len > 0 do
-				unget_word(code[len])
-				len = len - 1
-			end
 			break
-		else
-			len = len + 1
-			code[len] = word
 		end
-			
+	end
+	push(block)
+;;
+:: times
+	local iterations = pop()
+	local block = pop()
+	if iterations > 0 then
+		unget_word("times")
+		unget_word(tostring(iterations-1))
+		unget_word("#")
+		local len = table.getn(block)
+		local templen = len
+		while len > 0 do
+			unget_word(block[len])
+			len = len - 1
+		end
+		len = templen-1
+		while len > 1 do
+			unget_word(block[len])
+			len = len - 1
+		end
 	end
 ;;
-: loop{ # 1 # 0 div times{ ;
+: inf # 1 # 0 div ;
+: loop inf times ;
 :: dup 
 	local x = pop()
 	push(x)
@@ -65,4 +63,6 @@
 
 
 : hi # 1 # 1 add # 3 mul ;
-hi loop{ dup print # 1 add }
+hi { dup print } hi times # 1 sub print
+: lol hi print ;
+{ lol } # 3 times
