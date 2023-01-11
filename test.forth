@@ -33,6 +33,12 @@
 	end
 	push(block)
 ;;
+:: eval_block
+	-- TODO
+;;
+:: unget_block 
+	-- TODO
+;;
 :: times
 	local iterations = pop()
 	local block = pop()
@@ -60,9 +66,37 @@
 	push(x)
 	push(x)
 ;;
+:: swap
+	local x = pop()
+	local y = pop()
+	push(x)
+	push(y)
+;;
+:: true push(true) ;;
+:: false push(false) ;;
+:: ifelse
+	local else_case = pop()
+	local if_case = pop()
+	local bool = pop()
+	local selected
+	if bool then
+		selected = if_case
+	else
+		selected = else_case
+	end
+	local block = selected
+	local len = table.getn(block)-1
+	while len > 1 do
+		unget_word(block[len])
+		len = len - 1
+	end
+;;
+: if { } ifelse ;
 
 
 : hi # 1 # 1 add # 3 mul ;
 hi { dup print } hi times # 1 sub print
 : lol hi print ;
 { lol } # 3 times
+false { # 3 print } { # 4 print } ifelse
+true { # 1 print } if
