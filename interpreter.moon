@@ -1,8 +1,17 @@
 import open from io
 
 -- get the code as a string
-file = open "test.forth", "r"
-program = (file\read "*a")\gsub("([^%S ]+)"," %1 ")
+read_file = (name) ->
+	file = open name, "r"
+	file\read "*a"
+write_file = (name, contents) ->
+	file = open name, "w"
+	file\write contents
+
+-- serialization and deserialization
+-- TODO
+serialize = (obj) ->
+deserialize = (str) ->
 
 -- sigil helper function
 alphanumeric = (c) -> if c\match("%w") then true else false 
@@ -34,7 +43,10 @@ local eval
 
 -- parsing
 -- currently just makes a list of words
-parsed = [word for word in string.gmatch program, "([^ ]+)"]
+parse = (s) ->
+	program = s\gsub("([^%S ]+)"," %1 ")
+	[word for word in string.gmatch program, "([^ ]+)"]
+parsed = parse read_file "test.forth"
 current_word = 0
 
 get_word = ->
@@ -49,13 +61,21 @@ unget_word = (word) ->
 	current_word -= 1
 
 -- user-defined lua functions, not to be called from forth but from lua
-user_env = {}
-setmetatable user_env, {__index: _G}
-user_env.push = push
-user_env.pop = pop
-user_env.get_word = get_word
-user_env.unget_word = unget_word
-user_env.dictionary = dictionary
+restore_env = (old_env) ->
+	user_env = {}
+	setmetatable user_env, {__index: _G}
+	for k,v in pairs(old_env)
+		user_env[k] = loadstring v
+		setfenv user_env[k], user_env
+	-- due to setfenv issues these have to be redefined
+	-- which means users can't overwrite them sadly
+	user_env.push = push
+	user_env.pop = pop
+	user_env.get_word = get_word
+	user_env.unget_word = unget_word
+	user_env.dictionary = dictionary
+	user_env
+user_env = restore_env {}
 
 -- evaluation of lua and forth code
 eval_lua = (body) ->
@@ -147,6 +167,12 @@ while true do
 		pass
 	else
 		eval word
+	-- store environment
+	stored_env = {}
+	for k,v in pairs(user_env) 
+		if "function" == type v
+			stored_env[k] = string.dump v
+	user_env = restore_env stored_env
 
 -- TODO: make debugging programs easier.
 
