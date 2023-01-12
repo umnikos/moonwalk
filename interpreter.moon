@@ -10,6 +10,8 @@ read_file = (name) ->
 write_file = (name, contents) ->
 	file = open name, "w"
 	file\write contents
+delete_file = (name) ->
+	os.remove name
 
 -- serialization and deserialization
 serialize = (o) ->
@@ -27,13 +29,13 @@ serialize = (o) ->
 	else if "table" == type o
 		s = "{ "
 		for k,v in pairs(o)
-			s = s.."["..k.."] = "..(serialize v)..", "
+			s = s.."["..serialize(k).."] = "..(serialize v)..", "
 		return s.." }"
 	else if "function" == type o
 		d = debug.getinfo o
 		env = d.func
 		str = string.dump o
-		return "(function()\n local f = loadstring("..serialize(str)..")\n setfenv(f,env)\n return f".."\n end)()"
+		return "(function(env)\n local f = loadstring("..serialize(str)..")\n setfenv(f,env)\n return f".."\n end)(env)"
 	else
 		error "DIDN'T THINK OF TYPE "..(type o).." FOR SERIALIZING"
 deserialize = (str,env) ->
@@ -65,7 +67,8 @@ pop = ->
 -- the type tells you if the code is lua code or forth code
 -- lua code is a string to be evaluated
 -- forth code is a list of words to be evaluated
-dictionary = {}
+--dictionary = {}
+local dictionary
 
 -- definitions recursively call eval so here it is
 local eval
@@ -96,8 +99,9 @@ restore_env = (old_env) ->
 	user_env = {}
 	setmetatable user_env, {__index: _G}
 	for k,v in pairs(old_env)
-		user_env[k] = loadstring v
-		setfenv user_env[k], user_env
+		user_env[k] = v
+		if "function" == type user_env[k]
+			setfenv user_env[k], user_env
 	-- due to setfenv issues these have to be redefined
 	-- which means users can't overwrite them sadly
 	-- (the issue is upvalues not being preserved)
@@ -107,15 +111,22 @@ restore_env = (old_env) ->
 	user_env.unget_word = unget_word
 	user_env.dictionary = dictionary
 	user_env
-restore_task_queue = (old_task_queue) ->
+restore_task_queue = (old_task_queue, old_current_word) ->
 	parsed = old_task_queue
-restore_stack = (old_stack) ->
-	stack = old_stack
+	current_word = old_current_word
+restore_stack = (old_stack, old_stack_index) ->
+	data_stack = old_stack
+	stack_index = old_stack_index
+restore_dictionary = (old_dictionary) ->
+	dictionary = old_dictionary
 save_state = -> 
 	current_state = {
-		stack: stack
+		stack: data_stack
 		task_queue: parsed
 		env: user_env
+		dictionary: dictionary
+		current_word: current_word
+		stack_index: stack_index
 	}
 	write_file "current_state.state", serialize current_state
 store_state = save_state
@@ -123,19 +134,27 @@ restore_state = ->
 	str = read_file "current_state.state"
 	local old_state
 	if str
-		old_state = deserialize str
+		print "OLD STATE GOTTEN"
+		old_state = deserialize str, {}
 	else
+		print "NEW STATE CREATED"
 		old_state = {
 			stack: {}
 			task_queue: parse read_file "test.forth"
 			env: {}
+			dictionary: {}
+			current_word: 0
+			stack_index: 0
 		}
-	restore_stack old_state.stack
-	restore_task_queue old_state.task_queue
+	restore_dictionary old_state.dictionary
+	restore_stack old_state.stack, old_state.stack_index
+	restore_task_queue old_state.task_queue, old_state.current_word
 	restore_env old_state.env
+delete_state = ->
+	delete_file "current_state.state"
+
 restore_state!
 
-restore_env {}
 -- evaluation of lua and forth code
 eval_lua = (body) ->
 	f = loadstring body
@@ -165,6 +184,7 @@ dictionary[":"] = {
 	body: '
 		local name
 		name = get_word()
+		--print("DEFINING "..name)
 		local body
 		body = {}
 		local length
@@ -193,6 +213,7 @@ dictionary["::"] = {
 	body: '
 		local name
 		name = get_word()
+		--print("DEFINING "..name)
 		local body
 		body = {}
 		local length
@@ -218,16 +239,17 @@ dictionary["::"] = {
 
 
 -- REPL
-restore_state!
 while true do
+	store_state!
 	word = get_word!
+	--print word
 	if not word then
 		break
 	if entirely_whitespace word then
 		pass
 	else
 		eval word
-	store_state!
+delete_state!
 
 
 -- TODO: make debugging programs easier.
