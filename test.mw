@@ -1,18 +1,21 @@
-:: print print(pop()) ;;
-:: add push(pop()+pop()) ;;
-:: mul push(pop()*pop()) ;;
-:: sub 
+:: retry pure 
+	-- nothing
+;;
+:: print retry  print(pop()) ;;
+:: add pure  push(pop()+pop()) ;;
+:: mul pure  push(pop()*pop()) ;;
+:: sub pure
 	local y = pop()
 	local x = pop()
 	push(x-y)
 ;;
-:: div
+:: div pure
 	local y = pop()
 	local x = pop()
 	push(x/y)
 ;;
-:: # push(tonumber(get_word())) ;;
-:: $
+:: # pure  push(tonumber(get_word())) ;;
+:: $ pure
 	function length(x)
 		return table.getn(x)
 	end
@@ -31,7 +34,7 @@
 		end
 	end
 ;; $
-:: {
+:: { pure
 	local block = {}
 	block[1] = "{"
 	local len = 1
@@ -52,7 +55,7 @@
 	end
 	push(block)
 ;;
-:: times
+:: times pure
 	local iterations = pop()
 	local block = pop()
 	if iterations > 0 then
@@ -65,20 +68,20 @@
 ;;
 : inf # 1 # 0 div ;
 : loop inf times ;
-:: dup 
+:: dup pure
 	local x = pop()
 	push(x)
 	push(x)
 ;;
-:: swap
+:: swap pure
 	local x = pop()
 	local y = pop()
 	push(x)
 	push(y)
 ;;
-:: true push(true) ;;
-:: false push(false) ;;
-:: ifelse
+:: true pure  push(true) ;;
+:: false pure  push(false) ;;
+:: ifelse pure
 	local else_case = pop()
 	local if_case = pop()
 	local bool = pop()

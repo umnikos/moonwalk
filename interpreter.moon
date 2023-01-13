@@ -32,8 +32,11 @@ serialize = (o) ->
 			s = s.."["..serialize(k).."] = "..(serialize v)..", "
 		return s.." }"
 	else if "function" == type o
-		d = debug.getinfo o
-		env = d.func
+		-- this is how you'd get the environment
+		-- if it was possible to serialize it
+		-- but the environment contains functions so it's not
+		--d = debug.getinfo o
+		--env = d.func
 		str = string.dump o
 		return "(function(env)\n local f = loadstring("..serialize(str)..")\n setfenv(f,env)\n return f".."\n end)(env)"
 	else
@@ -89,6 +92,21 @@ get_word = ->
 	--	 error "RAN OUT OF WORDS"
 	parsed[current_word]
 
+should_save = ->
+	word = dictionary[parsed[current_word+1]]
+	-- nothing to execute, why save before nothing?
+	if not word 
+		return false
+	-- expansion is a pure operation
+	if word.type == "moonwalk"
+		return false
+	-- pure words are also pure
+	if word.recovery == "pure"
+		return false
+	-- if not sure, default to true
+	print "FAILED TO SPARE YOU"
+	return true
+
 unget_word = (word) ->
 	parsed[current_word] = word
 	current_word -= 1
@@ -134,10 +152,10 @@ restore_state = ->
 	str = read_file "current_state.state"
 	local old_state
 	if str
-		print "OLD STATE GOTTEN"
+		--print "OLD STATE GOTTEN"
 		old_state = deserialize str, {}
 	else
-		print "NEW STATE CREATED"
+		--print "NEW STATE CREATED"
 		old_state = {
 			stack: {}
 			task_queue: parse read_file "test.mw"
@@ -181,6 +199,7 @@ eval = (name) ->
 
 dictionary[":"] = {
 	type: "lua"
+	recovery: "pure"
 	body: '
 		local name
 		name = get_word()
@@ -196,7 +215,8 @@ dictionary[":"] = {
 				-- finish definition
 				dictionary[name] = {
 					type="moonwalk",
-					body=body
+					body=body,
+					recovery="pure"
 				}
 				break
 			else
@@ -210,10 +230,13 @@ dictionary[":"] = {
 
 dictionary["::"] = {
 	type: "lua"
+	recovery: "pure"
 	body: '
 		local name
 		name = get_word()
 		--print("DEFINING "..name)
+		local recovery
+		recovery = get_word()
 		local body
 		body = {}
 		local length
@@ -225,7 +248,8 @@ dictionary["::"] = {
 				-- finish definition
 				dictionary[name] = {
 					type="lua",
-					body=table.concat(body, " ")
+					body=table.concat(body, " "),
+					recovery=recovery
 				}
 				break
 			else
@@ -240,7 +264,8 @@ dictionary["::"] = {
 
 -- REPL
 while true do
-	store_state!
+	if should_save!
+		store_state!
 	word = get_word!
 	--print word
 	if not word then
