@@ -97,7 +97,7 @@
 
 
 : hi # 1 # 1 add # 3 mul ;
-hi { dup print } hi times # 1 sub print
+hi { # 1 add dup print } # 100 times # 1 sub print
 : lol hi print ;
 { lol } # 3 times
 false { # 3 print } { # 4 print } ifelse

@@ -94,7 +94,7 @@ get_word = ->
 
 should_save = ->
 	word = dictionary[parsed[current_word+1]]
-	-- nothing to execute, why save before nothing?
+	-- either nothing to execute or the word isn't defined
 	if not word 
 		return false
 	-- expansion is a pure operation
@@ -104,7 +104,7 @@ should_save = ->
 	if word.recovery == "pure"
 		return false
 	-- if not sure, default to true
-	print "FAILED TO SPARE YOU"
+	--print "FAILED TO SPARE YOU"
 	return true
 
 unget_word = (word) ->
@@ -168,6 +168,10 @@ restore_state = ->
 	restore_stack old_state.stack, old_state.stack_index
 	restore_task_queue old_state.task_queue, old_state.current_word
 	restore_env old_state.env
+	if str
+		--print parsed[current_word+1]
+		word = dictionary[parsed[current_word+1]]
+		unget_word word.recovery
 delete_state = ->
 	delete_file "current_state.state"
 
