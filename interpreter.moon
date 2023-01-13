@@ -64,9 +64,9 @@ pop = ->
 -- dictionary
 -- maps word names to a definition
 -- a definition is an object with a type field and body field
--- the type tells you if the code is lua code or forth code
+-- the type tells you if the code is lua code or moonwalk code
 -- lua code is a string to be evaluated
--- forth code is a list of words to be evaluated
+-- moonwalk code is a list of words to be evaluated
 --dictionary = {}
 local dictionary
 
@@ -78,7 +78,7 @@ local eval
 parse = (s) ->
 	program = s\gsub("([^%S ]+)"," %1 ")
 	[word for word in string.gmatch program, "([^ ]+)"]
---parsed = parse read_file "test.forth"
+--parsed = parse read_file "test.mw"
 local parsed
 current_word = 0
 
@@ -93,7 +93,7 @@ unget_word = (word) ->
 	parsed[current_word] = word
 	current_word -= 1
 
--- user-defined lua functions, not to be called from forth but from lua
+-- user-defined lua functions, not to be called from moonwalk but from lua
 local user_env
 restore_env = (old_env) ->
 	user_env = {}
@@ -140,7 +140,7 @@ restore_state = ->
 		print "NEW STATE CREATED"
 		old_state = {
 			stack: {}
-			task_queue: parse read_file "test.forth"
+			task_queue: parse read_file "test.mw"
 			env: {}
 			dictionary: {}
 			current_word: 0
@@ -155,7 +155,7 @@ delete_state = ->
 
 restore_state!
 
--- evaluation of lua and forth code
+-- evaluation of lua and moonwalk code
 eval_lua = (body) ->
 	f = loadstring body
 	if not f then
@@ -163,7 +163,7 @@ eval_lua = (body) ->
 	setfenv f, user_env
 	f!
 
-eval_forth = (body) -> 
+eval_mw = (body) -> 
 	for word in *body[(table.getn body),1,-1]
 		unget_word word
 
@@ -174,8 +174,8 @@ eval = (name) ->
 	body = dictionary[name].body
 	if type == "lua" then
 		eval_lua body
-	else if type == "forth" then
-		eval_forth body
+	else if type == "moonwalk" then
+		eval_mw body
 	else
 		error "EVAL TYPE ERROR: "..name
 
@@ -195,7 +195,7 @@ dictionary[":"] = {
 			if word == ";" then
 				-- finish definition
 				dictionary[name] = {
-					type="forth",
+					type="moonwalk",
 					body=body
 				}
 				break
