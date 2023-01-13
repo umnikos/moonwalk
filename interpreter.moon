@@ -146,7 +146,8 @@ save_state = ->
 		current_word: current_word
 		stack_index: stack_index
 	}
-	write_file "current_state.state", serialize current_state
+	write_file "new_state.state", serialize current_state
+	os.rename "new_state.state", "current_state.state"
 store_state = save_state
 restore_state = -> 
 	str = read_file "current_state.state"
@@ -201,6 +202,12 @@ eval = (name) ->
 	else
 		error "EVAL TYPE ERROR: "..name
 
+dictionary["pure"] = {
+	type: "moonwalk"
+	recovery: "pure"
+	body: {}
+}
+
 dictionary[":"] = {
 	type: "lua"
 	recovery: "pure"
@@ -241,6 +248,9 @@ dictionary["::"] = {
 		--print("DEFINING "..name)
 		local recovery
 		recovery = get_word()
+		if not dictionary[recovery]  then
+			error("INVALID RECOVERY WORD WHEN DEFINING "..name)
+		end
 		local body
 		body = {}
 		local length

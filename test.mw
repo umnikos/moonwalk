@@ -1,9 +1,15 @@
 :: retry pure 
 	-- nothing
 ;;
-:: print retry  print(pop()) ;;
-:: add pure  push(pop()+pop()) ;;
-:: mul pure  push(pop()*pop()) ;;
+:: print retry
+	print(pop())
+;;
+:: add pure
+	push(pop()+pop())
+;;
+:: mul pure
+	push(pop()*pop())
+;;
 :: sub pure
 	local y = pop()
 	local x = pop()
@@ -14,7 +20,9 @@
 	local x = pop()
 	push(x/y)
 ;;
-:: # pure  push(tonumber(get_word())) ;;
+:: # pure
+	push(tonumber(get_word()))
+;;
 :: $ pure
 	function length(x)
 		return table.getn(x)
@@ -79,8 +87,12 @@
 	push(x)
 	push(y)
 ;;
-:: true pure  push(true) ;;
-:: false pure  push(false) ;;
+:: true pure
+	push(true)
+;;
+:: false pure
+	push(false)
+;;
 :: ifelse pure
 	local else_case = pop()
 	local if_case = pop()
