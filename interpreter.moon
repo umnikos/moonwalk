@@ -17,8 +17,6 @@ delete_file = (name) ->
 serialize = (o) ->
 	if "string" == type o
 		s = string.format "%q", o
-		--for c in s\gmatch "."
-		--	print (string.format "%x", c\byte 1)
 		return s
 	else if "number" == type o
 		return o
@@ -32,11 +30,6 @@ serialize = (o) ->
 			s = s.."["..serialize(k).."] = "..(serialize v)..", "
 		return s.." }"
 	else if "function" == type o
-		-- this is how you'd get the environment
-		-- if it was possible to serialize it
-		-- but the environment contains functions so it's not
-		--d = debug.getinfo o
-		--env = d.func
 		str = string.dump o
 		return "(function(env)\n local f = loadstring("..serialize(str)..")\n setfenv(f,env)\n return f".."\n end)(env)"
 	else
@@ -52,8 +45,10 @@ alphanumeric = (c) -> if c\match("%w") then true else false
 entirely_whitespace = (s) -> if s\match("[^%s]") then false else true
 
 -- data stack
-data_stack = {}
-stack_index = 0
+-- list of items on the stack
+-- stack_index points to the top stack item
+local data_stack
+local stack_index
 push = (v) ->
 	stack_index += 1
 	data_stack[stack_index] = v
@@ -70,20 +65,19 @@ pop = ->
 -- the type tells you if the code is lua code or moonwalk code
 -- lua code is a string to be evaluated
 -- moonwalk code is a list of words to be evaluated
---dictionary = {}
 local dictionary
 
 -- definitions recursively call eval so here it is
 local eval
 
 -- parsing
--- currently just makes a list of words
 parse = (s) ->
 	program = s\gsub("([^%S ]+)"," %1 ")
 	[word for word in string.gmatch program, "([^ ]+)"]
---parsed = parse read_file "test.mw"
+-- parsed is the result of parsing a program
+-- current_word points 1 word before the next word in line for execution
 local parsed
-current_word = 0
+local current_word
 
 get_word = ->
 	current_word += 1
@@ -202,6 +196,7 @@ eval = (name) ->
 	else
 		error "EVAL TYPE ERROR: "..name
 
+-- predefined words
 dictionary["pure"] = {
 	type: "moonwalk"
 	recovery: "pure"
