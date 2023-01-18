@@ -1,0 +1,109 @@
+:: retry pure 
+	-- nothing
+;;
+:: print retry
+	print(pop())
+;;
+:: add pure
+	push(pop()+pop())
+;;
+:: mul pure
+	push(pop()*pop())
+;;
+:: sub pure
+	local y = pop()
+	local x = pop()
+	push(x-y)
+;;
+:: div pure
+	local y = pop()
+	local x = pop()
+	push(x/y)
+;;
+:: # pure
+	push(deserialize(get_word()))
+;;
+:: $ pure
+	function length(x)
+		return table.getn(x)
+	end
+	function unget_block(block)
+		local len = length(block)
+		while len > 0 do
+			unget_word(block[len])
+			len = len - 1
+		end
+	end
+	function unget_block_body(block) 
+		local len = length(block)-1
+		while len > 1 do
+			unget_word(block[len])
+			len = len - 1
+		end
+	end
+;; $
+:: { pure
+	local block = {}
+	block[1] = "{"
+	local len = 1
+	local depth = 1
+	while true do
+		local word = get_word()
+		if word == "{" then
+			depth = depth + 1
+	    end
+		if word == "}" then
+			depth = depth - 1
+	    end
+		len = len + 1
+		block[len] = word
+		if depth == 0 then
+			break
+		end
+	end
+	push(block)
+;;
+:: times pure
+	local iterations = pop()
+	local block = pop()
+	if iterations > 0 then
+		unget_word("times")
+		unget_word(serialize(iterations-1))
+		unget_word("#")
+		unget_block(block)
+		unget_block_body(block)
+	end
+;;
+: inf # 1 # 0 div ;
+: forever inf times ;
+:: dup pure
+	local x = pop()
+	push(x)
+	push(x)
+;;
+:: swap pure
+	local x = pop()
+	local y = pop()
+	push(x)
+	push(y)
+;;
+:: true pure
+	push(true)
+;;
+:: false pure
+	push(false)
+;;
+:: ifelse pure
+	local else_case = pop()
+	local if_case = pop()
+	local bool = pop()
+	local selected
+	if bool then
+		selected = if_case
+	else
+		selected = else_case
+	end
+	unget_block_body(selected)
+;;
+: if { } ifelse ;
+

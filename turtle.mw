@@ -1,0 +1,46 @@
+include stdlib.mw
+
+:: forward_recovery retry
+	local current_fuel = turtle.getFuelLevel()
+	if saved_fuel_level > current_fuel then
+		get_word() -- skip
+	end
+;;	
+
+:: save_fuel_level retry
+	saved_fuel_level = turtle.getFuelLevel()
+;;
+:: forward_internal forward_recovery
+	turtle.forward()
+;;
+: forward save_fuel_level forward_internal ;
+
+: turn_right save_rotation turn_right_internal ;
+: save_rotation get_current_rotation save_rotation_internal ;
+:: get_current_rotation retry
+	local block_scanner = peripheral.find("plethora:scanner")
+	if not block_scanner then
+		error("COULDN'T FIND BLOCK SCANNER")
+	end
+	local results = block_scanner.scan()
+	for i, block in ipairs(results) do
+		if block.x == 0 and block.y == 0 and block.z == 0 then
+			push(block.state.facing)
+		end
+	end
+;;
+:: save_rotation_internal retry
+	saved_rotation = pop()
+;;
+: turn_recovery get_current_rotation turn_recovery_internal ;
+:: turn_recovery_internal retry
+	local new_rotation = pop()
+	if new_rotation ~= saved_rotation then
+		get_word()
+	end
+;;
+:: turn_right_internal turn_recovery
+	turtle.turnRight()
+;;
+
+{ forward turn_right turn_right } forever

@@ -34,6 +34,8 @@ serialize = (o) ->
 		s = string.format "%q", o
 		return s
 	else if "number" == type o
+		if o == 1/0
+			return "(1/0)"
 		return o
 	else if "boolean" == type o
 		return tostring(o)
