@@ -1,17 +1,32 @@
 import open from io
 
+args = {...}
+
 -- get the code as a string
 read_file = (name) ->
 	file = open name, "r"
 	if file
-		file\read "*a"
+		contents = file\read "*a"
+		file\close!
+		contents
 	else
 		nil
 write_file = (name, contents) ->
 	file = open name, "w"
 	file\write contents
+	file\close!
 delete_file = (name) ->
-	os.remove name
+	if fs
+		fs.delete name
+	else
+		os.remove name
+rename_file = (old, new) ->
+	if fs
+		if fs.exists new
+			fs.delete new
+		fs.move old, new
+	else
+		os.rename old, new
 
 -- serialization and deserialization
 serialize = (o) ->
@@ -36,7 +51,6 @@ serialize = (o) ->
 		error "DIDN'T THINK OF TYPE "..(type o).." FOR SERIALIZING"
 deserialize = (str,env) ->
 	s = "return function(env)\n return "..str.."\n end"
-	write_file "test3.lua", s
 	f = (loadstring s)!
 	return f env
 
@@ -98,7 +112,6 @@ should_save = ->
 	if word.recovery == "pure"
 		return false
 	-- if not sure, default to true
-	--print "FAILED TO SPARE YOU"
 	return true
 
 unget_word = (word) ->
@@ -122,6 +135,10 @@ restore_env = (old_env) ->
 	user_env.get_word = get_word
 	user_env.unget_word = unget_word
 	user_env.dictionary = dictionary
+	user_env.parse = parse
+	user_env.read_file = read_file
+	user_env.serialize = serialize
+	user_env.deserialize = deserialize
 	user_env
 restore_task_queue = (old_task_queue, old_current_word) ->
 	parsed = old_task_queue
@@ -141,7 +158,8 @@ save_state = ->
 		stack_index: stack_index
 	}
 	write_file "new_state.state", serialize current_state
-	os.rename "new_state.state", "current_state.state"
+	rename_file "new_state.state", "current_state.state"
+	delete_file "new_state.state"
 store_state = save_state
 restore_state = -> 
 	str = read_file "current_state.state"
@@ -151,9 +169,14 @@ restore_state = ->
 		old_state = deserialize str, {}
 	else
 		--print "NEW STATE CREATED"
+		local new_task_queue
+		if args[1]
+			new_task_queue = parse read_file args[1]
+		else
+			new_task_queue = parse ""
 		old_state = {
 			stack: {}
-			task_queue: parse read_file "test.mw"
+			task_queue: new_task_queue
 			env: {}
 			dictionary: {}
 			current_word: 0
@@ -270,6 +293,19 @@ dictionary["::"] = {
 	'
 }
 
+dictionary["include"] = {
+	type: "lua"
+	recovery: "pure"
+	body: '
+		local name = get_word()
+		local code = parse(read_file(name))
+		local i = table.getn(code)
+		while i > 0 do
+			unget_word(code[i])
+			i = i - 1
+		end
+	'
+}
 
 -- REPL
 while true do
