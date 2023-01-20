@@ -165,6 +165,8 @@ save_state = ->
 store_state = save_state
 restore_state = -> 
 	str = read_file "current_state.state"
+	if args[1]
+		str = nil
 	local old_state
 	if str
 		--print "OLD STATE GOTTEN"
