@@ -107,3 +107,7 @@
 ;;
 : if { } ifelse ;
 
+:: read_line retry
+ local line = io.stdin:read()
+ push(line)
+;;

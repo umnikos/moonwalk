@@ -1,6 +1,6 @@
 include stdlib.mw
 
-:: forward_recovery retry
+:: move_recovery retry
 	local current_fuel = turtle.getFuelLevel()
 	if saved_fuel_level > current_fuel then
 		get_word() -- skip
@@ -10,10 +10,19 @@ include stdlib.mw
 :: save_fuel_level retry
 	saved_fuel_level = turtle.getFuelLevel()
 ;;
-:: forward_internal forward_recovery
+:: forward_internal move_recovery
 	turtle.forward()
 ;;
 : forward save_fuel_level forward_internal ;
+: up save_fuel_level up_internal ;
+:: up_internal move_recovery
+ turtle.up()
+;;
+: down save_fuel_level down_internal ;
+:: down_internal move_recovery
+ turtle.down()
+;;
+
 
 : turn_right save_rotation turn_right_internal ;
 : save_rotation get_current_rotation save_rotation_internal ;
@@ -42,5 +51,17 @@ include stdlib.mw
 :: turn_right_internal turn_recovery
 	turtle.turnRight()
 ;;
+: turn_left save_rotation turn_left_internal ;
+:: turn_left_internal turn_recovery
+ turtle.turnLeft()
+;;
 
-{ forward turn_right turn_right } forever
+:: dig retry
+ turtle.dig()
+;;
+:: dig_down retry
+ turtle.digDown()
+;;
+:: dig_up retry
+ turtle.digUp()
+;;

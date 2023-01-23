@@ -1,0 +1,12 @@
+include stdlib.mw
+
+:: eval_line pure
+ local code = parse(pop())
+ local i = table.getn(code)
+ while i>0 do
+  unget_word(code[i])
+  i = i - 1
+ end
+;;
+
+{ read_line eval_line } forever 
