@@ -1,5 +1,19 @@
-:: retry pure 
+:: retry pure
 	-- nothing
+;;
+:: $ pure
+	function set_success(b)
+		success = b
+	end
+;; $
+:: success pure
+	set_success(true)
+;;
+:: failure pure
+  set_success(false)
+;;
+:: success? pure
+	push(success)
 ;;
 :: print retry
 	print(pop())
@@ -20,6 +34,9 @@
 	local x = pop()
 	push(x/y)
 ;;
+:: = pure
+	push(pop() == pop())
+;;
 :: # pure
 	push(deserialize(get_word()))
 ;;
@@ -34,7 +51,7 @@
 			len = len - 1
 		end
 	end
-	function unget_block_body(block) 
+	function unget_block_body(block)
 		local len = length(block)-1
 		while len > 1 do
 			unget_word(block[len])
@@ -92,6 +109,9 @@
 ;;
 :: false pure
 	push(false)
+;;
+:: not pure
+  push(not pop())
 ;;
 :: ifelse pure
 	local else_case = pop()

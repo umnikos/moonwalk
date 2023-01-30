@@ -4,23 +4,24 @@ include stdlib.mw
 	local current_fuel = turtle.getFuelLevel()
 	if saved_fuel_level > current_fuel then
 		get_word() -- skip
+		set_success(true)
 	end
-;;	
+;;
 
 :: save_fuel_level retry
 	saved_fuel_level = turtle.getFuelLevel()
 ;;
 :: forward_internal move_recovery
-	turtle.forward()
+	set_success(turtle.forward())
 ;;
 : forward save_fuel_level forward_internal ;
 : up save_fuel_level up_internal ;
 :: up_internal move_recovery
- turtle.up()
+ set_success(turtle.up())
 ;;
 : down save_fuel_level down_internal ;
 :: down_internal move_recovery
- turtle.down()
+ set_success(turtle.down())
 ;;
 
 
@@ -64,4 +65,42 @@ include stdlib.mw
 ;;
 :: dig_up retry
  turtle.digUp()
+;;
+
+:: inspect retry
+ push(turtle.inspect())
+;;
+
+:: inspect_down retry
+ push(turtle.inspectDown())
+;;
+
+:: select retry
+ local slot = pop()
+ turtle.select(slot)
+;;
+
+:: place retry
+ turtle.place()
+;;
+
+:: place_up retry
+ turtle.placeUp()
+;;
+
+:: place_down retry
+ turtle.placeDown()
+;;
+
+:: item_count retry
+ local slot = pop()
+ push(turtle.getItemCount(slot))
+;;
+
+:: suck_up_to_count retry
+ local wanted_count = pop()
+ local count = turtle.getItemCount()
+ if count < wanted_count then
+  turtle.suckUp(wanted_count - count)
+ end
 ;;
