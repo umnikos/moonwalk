@@ -1,6 +1,10 @@
 :: retry pure
 	-- nothing
 ;;
+:: skip pure
+	get_word()
+;;
+
 :: $ pure
 	function set_success(b)
 		success = b
@@ -15,6 +19,7 @@
 :: success? pure
 	push(success)
 ;;
+
 :: print retry
 	print(pop())
 ;;
@@ -40,6 +45,7 @@
 :: # pure
 	push(deserialize(get_word()))
 ;;
+
 :: $ pure
 	function length(x)
 		return table.getn(x)
@@ -93,10 +99,16 @@
 ;;
 : inf # 1 # 0 div ;
 : forever inf times ;
+: once # 1 times ;
+: call once ;
+
 :: dup pure
 	local x = pop()
 	push(x)
 	push(x)
+;;
+:: del pure
+	pop()
 ;;
 :: swap pure
 	local x = pop()
@@ -104,6 +116,7 @@
 	push(x)
 	push(y)
 ;;
+
 :: true pure
 	push(true)
 ;;
@@ -113,6 +126,7 @@
 :: not pure
   push(not pop())
 ;;
+
 :: ifelse pure
 	local else_case = pop()
 	local if_case = pop()
@@ -126,6 +140,31 @@
 	unget_block_body(selected)
 ;;
 : if { } ifelse ;
+
+:: cooldown skip
+	sleep(1)
+;;
+
+:: concat pure
+	local b = pop()
+	local a = pop()
+	unget_word("}")
+	unget_block_body(b)
+	unget_block_body(a)
+	unget_word("{")
+;;
+
+:: quote pure
+	local x = pop()
+	unget_word("}")
+	unget_word(serialize(x))
+	unget_word("#")
+	unget_word("{")
+;;
+
+: quote_concat swap quote swap concat ;
+
+: force_success dup call success? { del } { cooldown force_success } ifelse ;
 
 :: read_line retry
  local line = io.stdin:read()

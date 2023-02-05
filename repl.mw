@@ -9,4 +9,4 @@ include stdlib.mw
  end
 ;;
 
-{ read_line eval_line } forever 
+: repl read_line eval_line repl ;

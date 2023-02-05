@@ -316,12 +316,12 @@ while true do
 	if should_save!
 		store_state!
 	word = get_word!
-	--print word
 	if not word then
 		break
 	if entirely_whitespace word then
 		pass
 	else
+		print word
 		eval word
 delete_state!
 

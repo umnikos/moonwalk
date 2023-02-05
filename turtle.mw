@@ -1,31 +1,47 @@
 include stdlib.mw
 
-:: move_recovery retry
+:: l pure
+	push("left")
+;;
+:: r pure
+	push("right")
+;;
+:: f pure
+	push("forward")
+;;
+:: b pure
+	push("back")
+;;
+:: u pure
+	push("up")
+;;
+:: d pure
+	push("down")
+;;
+
+:: moving_recovery retry
 	local current_fuel = turtle.getFuelLevel()
 	if saved_fuel_level > current_fuel then
 		get_word() -- skip
 		set_success(true)
 	end
 ;;
-
+: moving save_fuel_level moving_internal ;
 :: save_fuel_level retry
 	saved_fuel_level = turtle.getFuelLevel()
 ;;
-:: forward_internal move_recovery
-	set_success(turtle.forward())
+:: moving_internal moving_recovery
+	local direction = pop()
+	local actions = {
+		["forward"] = function() set_success(turtle.forward()) end,
+		["back"] = function() set_success(turtle.back()) end,
+		["up"] = function() set_success(turtle.up()) end,
+		["down"] = function() set_success(turtle.down()) end,
+	}
+	actions[direction]()
 ;;
-: forward save_fuel_level forward_internal ;
-: up save_fuel_level up_internal ;
-:: up_internal move_recovery
- set_success(turtle.up())
-;;
-: down save_fuel_level down_internal ;
-:: down_internal move_recovery
- set_success(turtle.down())
-;;
+: move quote { moving } concat force_success ;
 
-
-: turn_right save_rotation turn_right_internal ;
 : save_rotation get_current_rotation save_rotation_internal ;
 :: get_current_rotation retry
 	local block_scanner = peripheral.find("plethora:scanner")
@@ -42,65 +58,108 @@ include stdlib.mw
 :: save_rotation_internal retry
 	saved_rotation = pop()
 ;;
-: turn_recovery get_current_rotation turn_recovery_internal ;
-:: turn_recovery_internal retry
+: turning save_rotation turning_internal ;
+: turning_recovery get_current_rotation turning_recovery_internal ;
+:: turning_recovery_internal retry
 	local new_rotation = pop()
 	if new_rotation ~= saved_rotation then
 		get_word()
 	end
 ;;
-:: turn_right_internal turn_recovery
-	turtle.turnRight()
+:: turning_internal turning_recovery 
+	local direction = pop()
+	local actions = {
+		["left"] = function() set_success(turtle.turnLeft()) end,
+		["right"] = function() set_success(turtle.turnRight()) end,
+	}
+	actions[direction]()
 ;;
-: turn_left save_rotation turn_left_internal ;
-:: turn_left_internal turn_recovery
- turtle.turnLeft()
+: turn quote { turning } concat force_success ;
+
+:: digging retry
+	local direction = pop()
+	local actions = {
+		["forward"] = function() turtle.dig() set_success(not turtle.detect()) end,
+		["up"] = function() turtle.digUp() set_success(not turtle.detectUp()) end,
+		["down"] = function() turtle.digDown() set_success(not turtle.detectDown()) end,
+	}
+	actions[direction]()
+;;
+: dig quote { digging } concat force_success ;
+
+:: detect retry
+	local direction = pop()
+	local actions = {
+		["forward"] = function() push(turtle.detect()) end,
+		["up"] = function() push(turtle.detectUp()) end,
+		["down"] = function() push(turtle.detectDown()) end,
+	}
+	actions[direction]()
 ;;
 
-:: dig retry
- turtle.dig()
-;;
-:: dig_down retry
- turtle.digDown()
-;;
-:: dig_up retry
- turtle.digUp()
-;;
-
-:: inspect retry
- push(turtle.inspect())
-;;
-
-:: inspect_down retry
- push(turtle.inspectDown())
-;;
-
-:: select retry
+:: selecting retry
  local slot = pop()
- turtle.select(slot)
+ set_success(turtle.select(slot))
 ;;
+: select quote { selecting } concat force_success ;
 
-:: place retry
- turtle.place()
+: placing save_held_item placing_internal ;
+:: save_held_item retry
+	saved_held_item = turtle.getItemDetail()
 ;;
-
-:: place_up retry
- turtle.placeUp()
+:: placing_recovery retry
+	local held_item = turtle.getItemDetail()
+	local same_item = false
+	if held_item == saved_held_item then
+		same_item = true
+	elseif held_item.name == saved_held_item.name and held_item.count == saved_held_item.count then
+		same_item = true
+	end
+	if not same_item then
+		get_word()
+		set_success(true)
+	end
 ;;
-
-:: place_down retry
- turtle.placeDown()
+:: placing_internal placing_recovery
+	local direction = pop()
+	local actions = {
+		["forward"] = function() set_success(turtle.place()) end,
+		["up"] = function() set_success(turtle.placeUp()) end,
+		["down"] = function() set_success(turtle.placeDown()) end,
+	}
+	actions[direction]()
 ;;
+: place quote { placing } concat force_success ;
 
 :: item_count retry
- local slot = pop()
- push(turtle.getItemCount(slot))
+	push(turtle.getItemCount())
 ;;
+: count_items item_count ;
 
-:: suck_up_to_count retry
- local wanted_count = pop()
- local count = turtle.getItemCount()
- if count < wanted_count then
-  turtle.suckUp(wanted_count - count)
- end
+:: sucking_to_count retry
+	local direction = pop()
+	local wanted_count = pop()
+	local count = turtle.getItemCount()
+	if count < wanted_count then
+		local actions = {
+			["forward"] = function() turtle.suck(wanted_count - count) end,
+			["up"] = function() turtle.suckUp(wanted_count - count) end,
+			["down"] = function() turtle.suckDown(wanted_count - count) end,
+		}
+		actions[direction]()
+		set_success(turtle.getItemCount() == wanted_count)
+	end
 ;;
+: suck_to_count { sucking_to_count } quote_concat quote_concat force_success ;
+
+:: dropping retry
+	local direction = pop()
+	local actions = {
+		["forward"] = function() turtle.drop() end,
+		["up"] = function() turtle.dropUp() end,
+		["down"] = function() turtle.dropDown() end,
+	}
+	actions[direction]()
+	set_success(turtle.getItemCount() == 0)
+;;
+: drop quote { dropping } concat force_success ;

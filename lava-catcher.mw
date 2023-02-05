@@ -1,24 +1,42 @@
 include turtle.mw
 
-: place_things # 1 select place_up # 2 select place ;
-: aquire_bucket has_bucket? { } { craft_bucket } ifelse # 3 select ;
-: has_bucket? # 3 item_count # 0 = not ;
-:: craft retry
- turtle.craft()
+:: setting_chest_to_buckets retry
+ local chest = peripheral.wrap("top")
+ if not chest then
+  set_sucess(false)
+  return
+ end
+ chest.setFrequency(colors.orange,colors.orange,colors.white)
+ set_success(true)
 ;;
-: craft_bucket # 1 select # 1 suck_up_to_count # 6 select # 1 suck_up_to_count # 3 select # 1 suck_up_to_count craft ;
-: aquire_lava place_down holding_lava_bucket? { success } { down success? { aquire_lava } if } ifelse ;
+: set_chest_to_buckets { setting_chest_to_buckets } force_success ;
+:: setting_chest_to_lava_buckets retry
+ local chest = peripheral.wrap("top")
+ if not chest then
+  set_sucess(false)
+  return
+ end
+ chest.setFrequency(colors.orange,colors.orange,colors.orange)
+ set_success(true)
+;;
+: set_chest_to_lava_buckets { setting_chest_to_lava_buckets } force_success ;
+
+: placing_things # 1 select u placing count_items # 0 = { success } { failure } ifelse ;
+: place_things { placing_things } force_success ;
+: aquire_bucket has_bucket? { } { get_bucket } ifelse # 3 select ;
+: has_bucket? # 3 select item_count # 0 = not ;
+: get_bucket set_chest_to_buckets # 3 select # 1 u suck_to_count holding_bucket? not { d drop get_bucket } if ;
+: aquire_lava d placing  success? { success } { d moving success? { aquire_lava } { failure } ifelse } ifelse ;
 :: holding_lava_bucket? retry
  local third_item = turtle.getItemDetail(3)
  push(third_item and third_item.name == "minecraft:lava_bucket")
 ;;
-:: give_bucket retry
- while turtle.getItemCount() > 0 and (not turtle.drop()) do
-  sleep(3)
- end
+:: holding_bucket? retry
+ local third_item = turtle.getItemDetail(3)
+  push(third_item and third_item.name == "minecraft:bucket")
 ;;
-: move_somewhere_else # 1 select dig_up dig forward ;
-: go_to_surface up success? { go_to_surface } if ;
+: give_bucket set_chest_to_lava_buckets u drop ;
+: go_to_surface u moving success? { go_to_surface } if ;
 : do_thing_with_bucket fine_on_fuel? { give_bucket } { refuel } ifelse ;
 :: fine_on_fuel? retry
  push(turtle.getFuelLevel() > 2000)
@@ -26,6 +44,8 @@ include turtle.mw
 :: refuel retry
  turtle.refuel()
 ;;
-: step place_things aquire_bucket aquire_lava success? go_to_surface { do_thing_with_bucket } { move_somewhere_else } ifelse ;
+: pack_things # 1 select u dig ;
+: drain_column place_things aquire_bucket aquire_lava success? go_to_surface { do_thing_with_bucket drain_column } { pack_things } ifelse ;
 
 include repl.mw
+repl
