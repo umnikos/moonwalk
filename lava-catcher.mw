@@ -47,5 +47,16 @@ include turtle.mw
 : pack_things # 1 select u dig ;
 : drain_column place_things aquire_bucket aquire_lava success? go_to_surface { do_thing_with_bucket drain_column } { pack_things } ifelse ;
 
+:: patrol_update_counters pure
+ local block = pop()
+ local x = pop()
+ local y = pop()
+ push(x)
+ push(y-1)
+ push(block)
+;;
+: patrol_body # 1 sub { dup call f move } swap times l turn dup call f move patrol_update_counters patrol ;
+: patrol over dup # 0 = not { patrol_body } if ;
+
 include repl.mw
 repl

@@ -116,6 +116,13 @@
 	push(x)
 	push(y)
 ;;
+:: over pure
+	local x = pop()
+	local y = pop()
+	push(y)
+	push(x)
+	push(y)
+;;
 
 :: true pure
 	push(true)
