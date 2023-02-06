@@ -1,0 +1,26 @@
+include turtle.mw
+
+: suck_iron # 16 f suck_to_count ;
+: craft_buckets # 1 select suck_iron # 6 select suck_iron # 3 select suck_iron craft ;
+:: craft retry
+ turtle.craft()
+;;
+:: should_give_bucket? retry
+ local bucket_chest = peripheral.wrap("top")
+ local list = bucket_chest.list()
+ local should_give_bucket = true
+ for i=1,18 do
+  if list[i] and (list[i].name == "minecraft:bucket") then
+   should_give_bucket = false
+   break
+  end
+ end
+ push(should_give_bucket)
+;;
+: wait_for_moment should_give_bucket? not { cooldown wait_for_moment } if ;
+: dump_buckets u drop ;
+
+: step craft_buckets wait_for_moment dump_buckets ;
+
+include repl.mw
+repl
