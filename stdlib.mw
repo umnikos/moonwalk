@@ -188,3 +188,12 @@
 ;;
 
 : repl read_line eval_line repl ;
+
+:: crash skip
+	if os.exit then
+		os.exit()
+	else
+		os.queueEvent("terminate")
+		sleep(1)
+	end
+;;
