@@ -58,5 +58,4 @@ include turtle.mw
 : patrol_body # 1 sub { dup call f move } swap times l turn dup call f move patrol_update_counters patrol ;
 : patrol over dup # 0 = not { patrol_body } if ;
 
-include repl.mw
 repl

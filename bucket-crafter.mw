@@ -22,5 +22,4 @@ include turtle.mw
 
 : step craft_buckets wait_for_moment dump_buckets ;
 
-include repl.mw
 repl
