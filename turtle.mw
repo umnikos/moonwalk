@@ -87,6 +87,17 @@ include stdlib.mw
 ;;
 : dig quote { digging } concat force_success ;
 
+
+:: attacking retry
+	local direction = pop()
+	local actions = {
+		["forward"] = function() set_success(turtle.attack()) end,
+		["up"] = function() set_success(turtle.attackUp()) end,
+		["down"] = function() set_success(turtle.attackDown()) end,
+	}
+	actions[direction]()
+;;
+
 :: detect retry
 	local direction = pop()
 	local actions = {
@@ -163,3 +174,14 @@ include stdlib.mw
 	set_success(turtle.getItemCount() == 0)
 ;;
 : drop quote { dropping } concat force_success ;
+
+:: patrol_update_counters pure
+ local block = pop()
+ local x = pop()
+ local y = pop()
+ push(x)
+ push(y-1)
+ push(block)
+;;
+: patrol_body # 1 sub { dup call f move } swap times l turn dup call f move patrol_update_counters patrol ;
+: patrol over dup # 0 = not { patrol_body } if ;

@@ -1,0 +1,17 @@
+include turtle.mw
+
+: fill # 2 select d placing success? { fill } { d detect not { fill_problem_resolver fill } if } ifelse ;
+: fill_problem_resolver item_count # 0 = { get_more_sand } { d attacking cooldown } ifelse ;
+: get_more_sand # 1 select u place # 2 select # 64 u suck_to_count # 1 select u dig ;
+
+:: as_number pure
+	push(tonumber(pop()))
+;;
+crash
+
+" Width of area to fill (How much to the left): " print
+read_line as_number
+" Length of area to fill (How much forward): " print
+read_line as_number
+
+{ fill } patrol

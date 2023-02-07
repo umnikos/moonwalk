@@ -230,37 +230,6 @@ dictionary["pure"] = {
 	body: {}
 }
 
-dictionary[":"] = {
-	type: "lua"
-	recovery: "pure"
-	body: '
-		local name
-		name = get_word()
-		--print("DEFINING "..name)
-		local body
-		body = {}
-		local length
-		length = 0
-		while true do
-			local word
-			word = get_word()
-			if word == ";" then
-				-- finish definition
-				dictionary[name] = {
-					type="moonwalk",
-					body=body,
-					recovery="pure"
-				}
-				break
-			else
-				-- add word to definition
-				length = length + 1
-				body[length] = word
-			end
-		end
-	'
-}
-
 dictionary["::"] = {
 	type: "lua"
 	recovery: "pure"
@@ -321,7 +290,7 @@ while true do
 	if entirely_whitespace word then
 		pass
 	else
-		print word
+		--print word
 		eval word
 delete_state!
 

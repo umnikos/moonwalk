@@ -6,6 +6,69 @@
 ;;
 
 :: $ pure
+	function length(x)
+		return table.getn(x)
+	end
+	function block(start_delim, end_delim, ...)
+		local include_delim = true
+		if arg[1] == false then
+			include_delim = false
+		end
+		local block = {}
+		local len
+		if include_delim then
+			block[1] = start_delim
+			len = 1
+		else
+			len = 0
+		end
+		local depth = 1
+		while true do
+			local word = get_word()
+			if word == end_delim then
+				depth = depth - 1
+		    end
+			if word == start_delim and start_delim ~= end_delim then
+				depth = depth + 1
+		    end
+			len = len + 1
+			block[len] = word
+			if depth == 0 then
+				break
+			end
+		end
+		if not include_delim then
+			block[len] = nil
+		end
+		return block
+	end
+	function unget_block(block)
+		local len = length(block)
+		while len > 0 do
+			unget_word(block[len])
+			len = len - 1
+		end
+	end
+	function unget_block_body(block)
+		local len = length(block)-1
+		while len > 1 do
+			unget_word(block[len])
+			len = len - 1
+		end
+	end
+;; $
+:: { pure
+	push(block("{","}"))
+;;
+
+:: : pure
+	local name = get_word()
+	local body = block(":",";", false)
+	dictionary[name] = { type="moonwalk", body=body, recovery="pure" }
+;;
+
+
+:: $ pure
 	function set_success(b)
 		success = b
 	end
@@ -23,6 +86,17 @@
 :: print retry
 	print(pop())
 ;;
+:: " pure
+	-- TODO: get raw word here to avoid skipping over whitespace
+	local block = block('"','"', false)
+	local string = ""
+	for i,v in ipairs(block) do
+		string = string..v.." "
+	end
+	string = string:sub(1,-2)
+	push(string)
+;;
+
 :: add pure
 	push(pop()+pop())
 ;;
@@ -46,46 +120,6 @@
 	push(deserialize(get_word()))
 ;;
 
-:: $ pure
-	function length(x)
-		return table.getn(x)
-	end
-	function unget_block(block)
-		local len = length(block)
-		while len > 0 do
-			unget_word(block[len])
-			len = len - 1
-		end
-	end
-	function unget_block_body(block)
-		local len = length(block)-1
-		while len > 1 do
-			unget_word(block[len])
-			len = len - 1
-		end
-	end
-;; $
-:: { pure
-	local block = {}
-	block[1] = "{"
-	local len = 1
-	local depth = 1
-	while true do
-		local word = get_word()
-		if word == "{" then
-			depth = depth + 1
-	    end
-		if word == "}" then
-			depth = depth - 1
-	    end
-		len = len + 1
-		block[len] = word
-		if depth == 0 then
-			break
-		end
-	end
-	push(block)
-;;
 :: times pure
 	local iterations = pop()
 	local block = pop()
