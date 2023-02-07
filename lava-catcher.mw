@@ -25,7 +25,7 @@ include turtle.mw
 : place_things { placing_things } force_success ;
 : aquire_bucket has_bucket? { } { get_bucket } ifelse # 3 select ;
 : has_bucket? # 3 select item_count # 0 = not ;
-: get_bucket set_chest_to_buckets # 3 select # 1 u suck_to_count holding_bucket? not { d drop get_bucket } if ;
+: get_bucket set_chest_to_buckets # 3 select # 1 u suck_to_count holding_bucket? not { u drop cooldown get_bucket } if ;
 : aquire_lava d placing  success? { success } { d moving success? { aquire_lava } { failure } ifelse } ifelse ;
 :: holding_lava_bucket? retry
  local third_item = turtle.getItemDetail(3)
