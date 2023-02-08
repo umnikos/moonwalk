@@ -1,0 +1,25 @@
+include turtle.mw
+
+:: fire retry
+	laser = peripheral.find("plethora:laser")
+	laser.fire(0,-90,5)
+	laser.fire(0,-90,5)
+;;
+: ensure_clear dup digging success? not { ensure_clear } { del } ifelse ;
+: take_out_column { f ensure_clear f move fire } over times u ensure_clear r turn r turn { f ensure_clear f move fire } over times ;
+: wait_for_cobble is_cobble? not { cooldown wait_for_cobble } if ;
+:: is_cobble? retry
+	local a,b = turtle.inspect()
+	push(turtle.detect() and b.name and b.name ~= "computercraft:turtle_normal" and b.name ~= "computercraft:turtle_advanced")
+;;
+: move_to_next_column u ensure_clear l turn wait_for_cobble f dig f move u ensure_clear r turn r turn f place r turn ;
+: park b move f place u ensure_clear l turn { f moving } # 10 times ;
+
+:: as_number pure
+	push(deserialize(pop()))
+;;
+" How long is a column? (number of times turtle should move forward): " print
+read_line as_number
+" How many columns? (number of times turtle should repeat clearing a column): " print
+read_line as_number
+# 1 sub { take_out_column move_to_next_column } swap times take_out_column del park

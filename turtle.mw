@@ -23,6 +23,7 @@ include stdlib.mw
 	local current_fuel = turtle.getFuelLevel()
 	if saved_fuel_level > current_fuel then
 		get_word() -- skip
+		pop()
 		set_success(true)
 	end
 ;;
@@ -45,16 +46,29 @@ include stdlib.mw
 : save_rotation get_current_rotation save_rotation_internal ;
 :: get_current_rotation retry
 	local block_scanner = peripheral.find("plethora:scanner")
-	if not block_scanner then
-		error("COULDN'T FIND BLOCK SCANNER")
-	end
-	local results = block_scanner.scan()
-	for i, block in ipairs(results) do
-		if block.x == 0 and block.y == 0 and block.z == 0 then
-			push(block.state.facing)
+	if block_scanner then
+		local results = block_scanner.scan()
+		for i, block in ipairs(results) do
+			if block.x == 0 and block.y == 0 and block.z == 0 then
+				push(block.state.facing)
+			end
 		end
+	else
+		--error("COULDN'T FIND BLOCK SCANNER")
+		unget_word("get_current_orientation_with_block")
 	end
 ;;
+: get_current_orientation_with_block selected # 16 select u place get_current_orientation_with_block_internal u dig swap select ;
+:: get_current_orientation_with_block_internal retry
+	local a,b = turtle.inspectUp()
+	local valid_directions = {["north"]=true,["east"]=true,["west"]=true,["south"]=true}
+	if b and b.state and valid_directions[b.state.facing] then
+		push(b.state.facing)
+	else
+		error("UNSUITABLE BLOCK FOR FIGURING OUT ORIENTATION")
+	end
+;;
+
 :: save_rotation_internal retry
 	saved_rotation = pop()
 ;;
@@ -64,6 +78,7 @@ include stdlib.mw
 	local new_rotation = pop()
 	if new_rotation ~= saved_rotation then
 		get_word()
+		pop()
 	end
 ;;
 :: turning_internal turning_recovery 
@@ -108,6 +123,10 @@ include stdlib.mw
 	actions[direction]()
 ;;
 
+:: selected retry
+	push(turtle.getSelectedSlot())
+;;
+
 :: selecting retry
  local slot = pop()
  set_success(turtle.select(slot))
@@ -128,6 +147,7 @@ include stdlib.mw
 	end
 	if not same_item then
 		get_word()
+		pop()
 		set_success(true)
 	end
 ;;
