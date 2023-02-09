@@ -1,0 +1,30 @@
+include turtle.mw
+
+:: negate_direction pure
+	local dir = pop()
+	if dir == "up" then
+		push("down")
+	elseif dir == "down" then
+		push("up")
+	else
+		error("INVALID DIRECTION TO NEGATE")
+	end
+;;
+: has_materials? # 2 select item_count # 0 = not ;
+: refill # 1 select u place # 2 select # 64 u suck_to_count # 1 select u dig ;
+: place_check_issue has_materials? { f detect { success } { cooldown place_with_refilling } ifelse } { refill place_with_refilling } ifelse ;
+: place_with_refilling # 2 select f placing success? not { place_check_issue } if ;
+: build_column_with_dir over { place_with_refilling dup move } swap # 1 sub times place_with_refilling ;
+: build_wall u swap { build_column_with_dir negate_direction r turn f move l turn } swap times ;
+
+:: as_number pure
+	push(deserialize(pop()))
+;;
+crash
+" Height (up): " print
+read_line as_number
+" Width (to the right): " print
+read_line as_number
+
+build_wall
+
