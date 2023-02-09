@@ -1,0 +1,55 @@
+include turtle.mw
+
+:: sucking retry
+	turtle.suck()
+;;
+:: sucking_down retry
+	turtle.suckDown()
+;;
+:: negate_direction pure
+	local dir = pop()
+	if dir == "right" then
+		push("left")
+	elseif dir == "left" then
+		push("right")
+	else
+		error("INVALID DIRECTION TO NEGATE")
+	end
+;;
+:: mine_layer_update_counters_and_recurse pure
+	local dir = pop()
+	local x = pop()
+	local y = pop()
+	push(y-1)
+	push(x)
+	push(dir)
+	unget_word("mine_layer_with_dir")
+;;
+:: reach pure
+	local x = pop()
+	local y = pop()
+	local z = pop()
+	push(z)
+	push(y)
+	push(x)
+	push(z)
+;;
+: take_out f dig sucking f move ;
+: mine_row { take_out } swap # 1 sub times ;
+: perform_turn dup turn take_out dup turn ;
+: mine_layer_with_dir reach { over mine_row perform_turn negate_direction } swap # 1 sub times over mine_row ;
+
+: mine_volume r swap { d dig sucking_down d move mine_layer_with_dir r turn r turn } swap times ;
+repl
+crash
+
+:: as_number pure
+	push(deserialize(pop()))
+;;
+" Enter x dimension (towards the right): " print
+read_line as_number
+" Enter z dimension (towards the front): " print
+read_line as_number
+" Enter y dimension (downwards): " print
+read_line as_number
+mine_volume
