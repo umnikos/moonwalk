@@ -13,7 +13,7 @@ include turtle.mw
 	push(turtle.detect() and b.name and b.name ~= "computercraft:turtle_normal" and b.name ~= "computercraft:turtle_advanced")
 ;;
 : move_to_next_column u ensure_clear l turn wait_for_cobble f dig f move u ensure_clear r turn r turn f place r turn ;
-: park b move f place u ensure_clear l turn { f moving } # 10 times ;
+: park f move u ensure_clear r turn r turn f place l turn { f moving } # 10 times ;
 
 :: as_number pure
 	push(deserialize(pop()))
