@@ -27,7 +27,12 @@ include stdlib.mw
 		set_success(true)
 	end
 ;;
-: moving save_fuel_level moving_internal ;
+:: moving_check_preliminaries retry
+	if turtle.getFuelLevel() == 0 then
+		error("CANNOT MOVE WITH 0 FUEL")
+	end
+;;
+: moving moving_check_preliminaries save_fuel_level moving_internal ;
 :: save_fuel_level retry
 	saved_fuel_level = turtle.getFuelLevel()
 ;;
