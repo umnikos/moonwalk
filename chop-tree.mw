@@ -1,0 +1,28 @@
+include turtle.mw
+
+:: is_log? retry
+	local a,b = turtle.inspect()
+	if b and b.state and b.state.axis and b.state.axis == "y" then
+		push(true)
+	else
+		push(false)
+	end
+;;
+
+: chop_up_until_gone u detect { u dig u move chop_up_until_gone } if ;
+: go_down d moving success? { go_down } if ;
+: replant f place ; 
+
+: chop_tree f dig f move chop_up_until_gone go_down b move replant ;
+:: dump_output retry
+	for i=2,16 do
+		turtle.select(i)
+		turtle.dropDown()
+	end
+	turtle.select(1)
+;;
+
+: step is_log? { chop_tree dump_output } { cooldown } ifelse ;
+
+crash
+{ step } forever

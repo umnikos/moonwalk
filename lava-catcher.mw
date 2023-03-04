@@ -1,17 +1,18 @@
 include turtle.mw
 
+: top " top " ;
 :: setting_chest_to_buckets retry
- local chest = peripheral.wrap("top")
+ local chest = peripheral.wrap(pop())
  if not chest then
-  set_sucess(false)
+  set_success(false)
   return
  end
  chest.setFrequency(colors.orange,colors.orange,colors.white)
  set_success(true)
 ;;
-: set_chest_to_buckets { setting_chest_to_buckets } force_success ;
+: set_chest_to_buckets { top setting_chest_to_buckets } force_success ;
 :: setting_chest_to_lava_buckets retry
- local chest = peripheral.wrap("top")
+ local chest = peripheral.wrap(pop())
  if not chest then
   set_sucess(false)
   return
@@ -19,7 +20,7 @@ include turtle.mw
  chest.setFrequency(colors.orange,colors.orange,colors.orange)
  set_success(true)
 ;;
-: set_chest_to_lava_buckets { setting_chest_to_lava_buckets } force_success ;
+: set_chest_to_lava_buckets { top setting_chest_to_lava_buckets } force_success ;
 
 : placing_things # 1 select u placing count_items # 0 = { success } { failure } ifelse ;
 : place_things { placing_things } force_success ;
@@ -46,5 +47,22 @@ include turtle.mw
 ;;
 : pack_things # 1 select u dig ;
 : drain_column place_things aquire_bucket aquire_lava success? go_to_surface { do_thing_with_bucket drain_column } { pack_things } ifelse ;
+
+: drain_chunk # 16 # 16 { drain_column } patrol ;
+: next_chunk { f move } # 7 times l turn { f move } # 9 times ;
+
+" this is so cursed lmao " del
+: drain_cauldron 
+ : d " up " ;
+ : u " down " ;
+ : top " bottom " ;
+ drain_column
+ : u " up " ;
+ : d " down " ;
+ : top " top " ;
+;
+
+: cauldron_chunk # 16 # 16 { drain_cauldron } patrol ;
+: same_chunk { f move } # 7 times l turn { b move } # 7 times ;
 
 crash repl
