@@ -51,18 +51,40 @@ include turtle.mw
 : drain_chunk # 16 # 16 { drain_column } patrol ;
 : next_chunk { f move } # 7 times l turn { f move } # 9 times ;
 
+:: sucking_cauldron retry
+ local m = peripheral.wrap("right")
+ local i = turtle.getItemDetail()
+ if i and i.name == "minecraft:bucket" then
+  m.use()
+  i = turtle.getItemDetail()
+  set_success(i and i.name == "minecraft:lava_bucket")
+ else
+  set_success(i and i.name == "minecraft:lava_bucket")
+ end
+;;
+
 " this is so cursed lmao " del
-: drain_cauldron 
+: cauldroneer
  : d " up " ;
  : u " down " ;
  : top " bottom " ;
- drain_column
+ { cauldron_chunk same_chunk } forever
  : u " up " ;
  : d " down " ;
  : top " top " ;
 ;
 
-: cauldron_chunk # 16 # 16 { drain_cauldron } patrol ;
+: drain_cauldron place_things aquire_bucket sucking_cauldron success? { do_thing_with_bucket pack_things } { pack_things } ifelse ;
+
+" even more cursed " del
+: cauldron_chunk 
+ # 13 select d dig d move
+ : move quote { moving } concat { # 13 select f dig } swap concat { r turn r turn # 13 select f place r turn r turn } concat force_success ;
+ # 16 # 16 { drain_cauldron } patrol
+ : move quote { moving } concat force_success ;
+ # 13 select u move d place
+;
 : same_chunk { f move } # 7 times l turn { b move } # 7 times ;
+
 
 crash repl
