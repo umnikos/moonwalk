@@ -19,6 +19,17 @@ include stdlib.mw
 	push("down")
 ;;
 
+:: $ pure
+	dir_as_peripheral = {
+		["up"] = "top",
+		["down"] = "bottom",
+		["left"] = "left",
+		["right"] = "right",
+		["forward"] = "front",
+		["back"] = "back",
+	}
+;; $
+
 :: moving_recovery retry
 	local current_fuel = turtle.getFuelLevel()
 	if saved_fuel_level > current_fuel then
@@ -48,6 +59,16 @@ include stdlib.mw
 ;;
 : move quote { moving } concat force_success ;
 
+:: inspect retry
+	local direction = pop()
+	local actions = {
+		["forward"] = function() local a,b=turtle.inspect() push(b) end,
+		["up"] = function() local a,b=turtle.inspectUp() push(b) end,
+		["down"] = function() local a,b=turtle.inspectDown() push(b) end,
+	}
+	actions[direction]()
+;;
+
 : save_rotation get_current_rotation save_rotation_internal ;
 :: get_current_rotation retry
 	local block_scanner = peripheral.find("plethora:scanner")
@@ -63,9 +84,9 @@ include stdlib.mw
 		unget_word("get_current_orientation_with_block")
 	end
 ;;
-: get_current_orientation_with_block selected # 16 select u place get_current_orientation_with_block_internal u dig swap select ;
+: get_current_orientation_with_block selected # 16 select u place u inspect get_current_orientation_with_block_internal u dig swap select ;
 :: get_current_orientation_with_block_internal retry
-	local a,b = turtle.inspectUp()
+	local b = pop()
 	local valid_directions = {["north"]=true,["east"]=true,["west"]=true,["south"]=true}
 	if b and b.state and valid_directions[b.state.facing] then
 		push(b.state.facing)
@@ -210,3 +231,18 @@ include stdlib.mw
 ;;
 : patrol_body # 1 sub { dup call f move } swap times l turn dup call f move patrol_update_counters patrol ;
 : patrol over dup # 0 = not { patrol_body } if ;
+
+:: setting_echest retry
+ local chest = peripheral.wrap(dir_as_peripheral[pop()])
+ if not chest then
+  pop()
+  pop()
+  pop()
+  set_success(false)
+  return
+ end
+ chest.setFrequency(2^pop(),2^pop(),2^pop())
+ set_success(true)
+;;
+
+: set_echest { setting_echest } quote_concat quote_concat quote_concat quote_concat force_success ;
