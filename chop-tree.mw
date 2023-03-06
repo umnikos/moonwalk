@@ -10,13 +10,13 @@ include turtle.mw
 	end
 ;;
 
-: chop_up_until_gone f is_log? { f dig } if u detect { u dig u move chop_up_until_gone } if ;
-: go_down d moving success? { go_down } if ;
-: replant f place ; 
+: chop_up_until_gone f is_log? { f dig } if u detect { # 1 add u dig u move chop_up_until_gone } if ;
+: go_down { d dig d move } swap times ;
+: replant f placing ; 
 
-: chop_tree f dig f move chop_up_until_gone go_down replant b move replant ;
+: chop_tree f dig f move # 0 chop_up_until_gone go_down replant b move replant ;
 :: dump_output retry
-	for i=2,16 do
+	for i=2,15 do
 		turtle.select(i)
 		turtle.dropDown()
 	end
@@ -32,13 +32,15 @@ include turtle.mw
 	push(turtle.getFuelLevel() < 5000)
 ;;
 : set_chest_to_lava # 1 # 1 # 1 f set_echest ;
-: set_chest_to_buckets # 1 # 1 # 0 f set_echest ;
+: set_chest_to_buckets # 0 # 1 # 1 f set_echest ;
 :: use_lava retry
 	turtle.refuel()
 ;;
-: refuel r turn r turn set_chest_to_lava # 13 select # 1 f suck_to_count use_lava set_chest_to_buckets f drop # 1 select r turn r turn ;
+: refuel u dig r turn r turn set_chest_to_lava # 13 select # 1 f suck_to_count use_lava set_chest_to_buckets f drop set_chest_to_lava # 1 select r turn r turn ;
 
-: step f is_log? { chop_tree dump_output restock low_fuel? { refuel } if } { cooldown } ifelse ;
+" FIXME: the two turtles desyncing leaves opportunity for a singular tree to grow! " del
+
+: step f is_log? { chop_tree dump_output } { cooldown step } ifelse ;
 
 crash
-{ step } forever
+{ # 1 select restock low_fuel? { refuel } if step } forever
