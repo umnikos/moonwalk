@@ -6,6 +6,7 @@
 ;;
 
 :: $ pure
+	-- TODO: call "cooldown" before executing a recovery word!!!
 	function length(x)
 		return table.getn(x)
 	end

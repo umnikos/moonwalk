@@ -204,8 +204,8 @@ include stdlib.mw
 			["down"] = function() turtle.suckDown(wanted_count - count) end,
 		}
 		actions[direction]()
-		set_success(turtle.getItemCount() == wanted_count)
 	end
+	set_success(turtle.getItemCount() == wanted_count)
 ;;
 : suck_to_count { sucking_to_count } quote_concat quote_concat force_success ;
 
