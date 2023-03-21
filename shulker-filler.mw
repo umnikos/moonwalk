@@ -1,0 +1,44 @@
+include turtle.mw
+
+:: craft retry
+	turtle.craft()
+;;
+" TODO: make a recovery word that just checks if inventory changed " del
+" TODO: make it so recovery words save the necessary state info on their own without every user having to do that beforehand " del
+" FIXME: this is NOT the correct recovery word. " del
+:: swap_tool skip
+	turtle.equipRight()
+;;
+
+: place_in_slot select # 1 f suck_to_count ;
+: craft_shulker 
+  l turn 
+  # 2 place_in_slot
+  # 10 place_in_slot
+  l turn 
+  # 6 place_in_slot
+  craft
+  l turn
+  # 1 place_in_slot
+  # 2 place_in_slot
+  # 3 place_in_slot
+  # 5 place_in_slot
+  # 7 place_in_slot
+  # 9 place_in_slot
+  # 10 place_in_slot
+  # 11 place_in_slot
+  craft
+  l turn ;
+: place_shulker craft_shulker f place ;
+
+: make_dye # 64 u suck_to_count craft f drop ;
+
+: swap_tool_with_bottom_chest
+  # 1 select # 1 d suck_to_count swap_tool d drop ;
+: output_shulker 
+  swap_tool_with_bottom_chest
+  f dig d drop
+  swap_tool_with_bottom_chest ;
+
+: step place_shulker { make_dye } # 54 times output_shulker ;
+repl
