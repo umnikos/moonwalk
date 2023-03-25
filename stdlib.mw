@@ -168,6 +168,12 @@
 :: not pure
   push(not pop())
 ;;
+:: or pure
+  push(pop() or pop())
+;;
+:: and pure
+  push(pop() and pop())
+;;
 
 :: ifelse pure
 	local else_case = pop()

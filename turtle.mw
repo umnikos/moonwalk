@@ -61,12 +61,13 @@ include stdlib.mw
 
 :: inspect retry
 	local direction = pop()
-	local actions = {
-		["forward"] = function() local a,b=turtle.inspect() push(b) end,
-		["up"] = function() local a,b=turtle.inspectUp() push(b) end,
-		["down"] = function() local a,b=turtle.inspectDown() push(b) end,
+	local functions = {
+		["forward"] = turtle.inspect,
+		["up"] = turtle.inspectUp,
+		["down"] = turtle.inspectDown,
 	}
-	actions[direction]()
+	local a,b = functions[direction]()
+	if a then push(b.name) else push("") end
 ;;
 
 : save_rotation get_current_rotation save_rotation_internal ;
