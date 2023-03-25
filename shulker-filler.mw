@@ -31,7 +31,7 @@ include turtle.mw
   l turn ;
 : place_shulker craft_shulker f place ;
 
-: make_dye # 64 u suck_to_count craft f drop ;
+: make_dye # 64 u suck_to_count f drop ;
 
 : swap_tool_with_bottom_chest
   # 1 select # 1 d suck_to_count swap_tool d drop ;
