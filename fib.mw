@@ -1,0 +1,5 @@
+include stdlib.mw
+
+: fib_step over add swap over swap sub swap dup print ;
+# 0 # 1 { fib_step } # 15 times
+
