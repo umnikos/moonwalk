@@ -1,7 +1,6 @@
 include turtle.mw
 
 : is_log? inspect is_log_internal ;
-" FIXME: this is broken now that inspect returns block name and not inspect data " del
 :: is_log_internal retry
 	local b = pop()
 	if b and b.state and b.state.axis and b.state.axis == "y" then

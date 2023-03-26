@@ -67,6 +67,16 @@ include stdlib.mw
 		["down"] = turtle.inspectDown,
 	}
 	local a,b = functions[direction]()
+	if a then push(b) else push(nil) end
+;;
+:: inspect_name retry
+	local direction = pop()
+	local functions = {
+		["forward"] = turtle.inspect,
+		["up"] = turtle.inspectUp,
+		["down"] = turtle.inspectDown,
+	}
+	local a,b = functions[direction]()
 	if a then push(b.name) else push("") end
 ;;
 

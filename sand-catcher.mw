@@ -1,28 +1,35 @@
 include turtle.mw
 
-: place_things # 1 select u place ;
+: place_things # 1 select u dig u place ;
 : pack_things # 1 select u dig ;
 
-: non_sand? inspect dup " " = swap " minecraft:sand " = or not ;
+: non_sand? inspect_name dup " " = swap " minecraft:sand " = or not ;
 
-: dig_all_sand d non_sand? { } { d dig d move dig_all_sand } ifelse ;
-: go_to_chest u detect { } { u move go_to_chest } ifelse ;
-: dump_sand # 4 # 4 # 4 u set_echest u drop ;
+: locate_sand f non_sand? { locate_sand_up } { } ifelse ;
+: locate_sand_up u dig u move f non_sand? { locate_sand_up } { } ifelse ;
+
+: dig_sand_here d non_sand? { } { d dig d move dig_sand_here } ifelse ;
+:: f_sucking retry
+ turtle.suck()
+;;
+: dig_sand_forward f detect { f digging f_sucking dig_sand_forward } if ;
+
+: dump_sand # 8 select item_count # 0 = not { place_things # 4 # 4 # 4 u set_echest # 1 { dup select u drop # 1 add } # 15 times del pack_things } { # 1 select } ifelse ;
 :: refuel_needed? retry
  push(turtle.getFuelLevel()<5000)
 ;;
 :: refuel retry
  turtle.refuel()
 ;;
-: refuel_if_needed refuel_needed? { # 1 # 1 # 1 u set_echest # 1 u suck_to_count refuel u drop } if ;
+: refuel_if_needed refuel_needed? { place_things # 1 # 1 # 1 u set_echest # 1 u suck_to_count refuel u drop pack_things } if ;
 
 " I shouldn't have to do this but for some reason drain_column is pushing a random `false` merely some of the time. " del
 : begin " begin " ;
 : end dup " begin " = { del } { del end } ifelse ;
 
-: drain_column begin place_things dig_all_sand go_to_chest dump_sand refuel_if_needed pack_things end ;
+: drain_column begin dig_sand_here locate_sand dig_sand_forward dump_sand refuel_if_needed end ;
 
 : drain_chunk # 16 # 16 { drain_column } patrol ;
-: next_chunk { f move } # 7 times l turn { f move } # 9 times ;
+: next_chunk { u move } # 10 times { f move } # 7 times l turn { f move } # 9 times ;
 
 repl
