@@ -3,12 +3,12 @@ include turtle.mw
 : place_things # 1 select u dig u place ;
 : pack_things # 1 select u dig ;
 
-: non_sand? inspect_name dup " " = swap " minecraft:sand " = or not ;
+: non_sand? dup detect swap inspect_name " minecraft:sand " = not and ;
 
 : locate_sand f non_sand? { locate_sand_up } { } ifelse ;
-: locate_sand_up u dig u move f non_sand? { locate_sand_up } { } ifelse ;
+: locate_sand_up u digmove f non_sand? { locate_sand_up } { } ifelse ;
 
-: dig_sand_here d non_sand? { } { d dig d move dig_sand_here } ifelse ;
+: dig_sand_here d non_sand? { } { d digmove dig_sand_here } ifelse ;
 :: f_sucking retry
  turtle.suck()
 ;;
@@ -30,6 +30,7 @@ include turtle.mw
 : drain_column begin dig_sand_here locate_sand dig_sand_forward dump_sand refuel_if_needed end ;
 
 : drain_chunk # 16 # 16 { drain_column } patrol ;
-: next_chunk { u move } # 10 times { f move } # 7 times l turn { f move } # 9 times ;
+: next_chunk { u digmove } # 10 times { f digmove } # 7 times u dig l turn { f digmove } # 9 times ;
 
+: ready crash { drain_chunk next_chunk } forever ;
 repl

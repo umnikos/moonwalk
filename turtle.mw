@@ -139,6 +139,8 @@ include stdlib.mw
 ;;
 : dig quote { digging } concat force_success ;
 
+: movedig dup moving success? { del } { dup dig movedig } ifelse ;
+: digmove movedig ;
 
 :: attacking retry
 	local direction = pop()
