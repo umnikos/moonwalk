@@ -1,0 +1,4 @@
+#!/usr/bin/fish
+# you should edit this file if your setup doesn't look like this
+# I just don't want to bundle the entirety of ccemux with this repo
+java -jar /home/umnikos/Launchers/ccemux/ccemux-launcher.jar $argv
