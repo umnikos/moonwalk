@@ -1,3 +1,4 @@
+include stdlib.mw
 :: retry pure 
 	-- nothing
 ;;

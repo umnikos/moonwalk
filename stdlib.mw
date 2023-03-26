@@ -190,7 +190,13 @@
 : if { } ifelse ;
 
 :: cooldown skip
-	sleep(1)
+	local sleep_dur = 1
+	if sleep then
+		sleep(sleep_dur)
+	else
+		local target_time = os.clock() + sleep_dur
+		while os.clock() < target_time do end
+	end
 ;;
 
 :: concat pure

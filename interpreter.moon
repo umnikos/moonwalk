@@ -102,26 +102,13 @@ get_word = ->
 	--	 error "RAN OUT OF WORDS"
 	parsed[current_word]
 
-should_save = ->
-	word = dictionary[parsed[current_word+1]]
-	-- either nothing to execute or the word isn't defined
-	if not word 
-		return false
-	-- expansion is a pure operation
-	if word.type == "moonwalk"
-		return false
-	-- pure words are also pure
-	if word.recovery == "pure"
-		return false
-	-- if not sure, default to true
-	return true
-
 unget_word = (word) ->
 	parsed[current_word] = word
 	current_word -= 1
 
 -- user-defined lua functions, not to be called from moonwalk but from lua
 local user_env
+local checkpoint
 restore_env = (old_env) ->
 	user_env = {}
 	setmetatable user_env, {__index: _G}
@@ -141,6 +128,7 @@ restore_env = (old_env) ->
 	user_env.read_file = read_file
 	user_env.serialize = serialize
 	user_env.deserialize = deserialize
+	user_env.checkpoint = checkpoint
 	user_env
 restore_task_queue = (old_task_queue, old_current_word) ->
 	parsed = old_task_queue
@@ -163,6 +151,7 @@ save_state = ->
 	rename_file "new_state.state", "current_state.state"
 	delete_file "new_state.state"
 store_state = save_state
+checkpoint = save_state
 restore_state = -> 
 	str = read_file "current_state.state"
 	if args[1]
@@ -190,10 +179,6 @@ restore_state = ->
 	restore_stack old_state.stack, old_state.stack_index
 	restore_task_queue old_state.task_queue, old_state.current_word
 	restore_env old_state.env
-	if str
-		--print parsed[current_word+1]
-		word = dictionary[parsed[current_word+1]]
-		unget_word word.recovery
 delete_state = ->
 	delete_file "current_state.state"
 
@@ -203,6 +188,7 @@ restore_state!
 eval_lua = (body) ->
 	f = loadstring body
 	if not f then
+		print body
 		error "INVALID LUA DEFINITION"
 	setfenv f, user_env
 	f!
@@ -226,13 +212,11 @@ eval = (name) ->
 -- predefined words
 dictionary["pure"] = {
 	type: "moonwalk"
-	recovery: "pure"
 	body: {}
 }
 
 dictionary["::"] = {
 	type: "lua"
-	recovery: "pure"
 	body: '
 		local name
 		name = get_word()
@@ -242,6 +226,11 @@ dictionary["::"] = {
 		if not dictionary[recovery]  then
 			error("INVALID RECOVERY WORD WHEN DEFINING "..name)
 		end
+		local prebody = ""
+		if recovery ~= "pure" then
+		  prebody = "unget_word(\\""..name.."\\")\\nunget_word(\\""..recovery.."\\")\\nunget_word(\\"cooldown\\")\\ncheckpoint()\\nget_word()\\nget_word()\\nget_word()\\n"
+		end
+		local postbody = ""
 		local body
 		body = {}
 		local length
@@ -253,8 +242,7 @@ dictionary["::"] = {
 				-- finish definition
 				dictionary[name] = {
 					type="lua",
-					body=table.concat(body, " "),
-					recovery=recovery
+					body=prebody..table.concat(body, " ")..postbody,
 				}
 				break
 			else
@@ -268,7 +256,6 @@ dictionary["::"] = {
 
 dictionary["include"] = {
 	type: "lua"
-	recovery: "pure"
 	body: '
 		local name = get_word()
 		local code = parse(read_file(name))
@@ -282,8 +269,6 @@ dictionary["include"] = {
 
 -- REPL
 while true do
-	if should_save!
-		store_state!
 	word = get_word!
 	if not word then
 		break
