@@ -34,13 +34,17 @@ include turtle.mw
 	push(x)
 	push(z)
 ;;
-: take_out f dig sucking f move ;
+
+: dump_inv # 1 select u place # 2 { dup select u drop # 1 add } # 14 times del # 1 select u dig ;
+: maintain_inv # 15 select item_count # 0 = not { dump_inv } if # 1 select ;
+
+: take_out # 1 select f dig sucking f move maintain_inv ;
 : mine_row { take_out } swap # 1 sub times ;
 : perform_turn dup turn take_out dup turn ;
 : mine_layer_with_dir reach { over mine_row perform_turn negate_direction } swap # 1 sub times over mine_row ;
 
 : mine_volume r swap { d dig sucking_down d move mine_layer_with_dir r turn r turn } swap times ;
-repl
+
 crash
 
 :: as_number pure
@@ -52,4 +56,4 @@ read_line as_number
 read_line as_number
 " Enter y dimension (downwards): " print
 read_line as_number
-mine_volume
+mine_volume dump_inv
