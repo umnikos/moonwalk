@@ -1,5 +1,9 @@
 include turtle.mw
 
+" TODO: an actual system for overwriting methods please " del
+: move dup moving success? not { dup detect { dup dig move } { dup attacking move } ifelse } { del } ifelse ;
+: place dup placing success? not { dup detect { dup dig place } { dup attacking place } ifelse } { del } ifelse ;
+
 :: sucking retry
 	turtle.suck()
 ;;

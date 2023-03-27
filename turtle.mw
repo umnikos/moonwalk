@@ -95,6 +95,7 @@ include stdlib.mw
 		unget_word("get_current_orientation_with_block")
 	end
 ;;
+" FIXME: this gets itself stuck if it inspects an unsuitable block, as it will not reinspect after that " del
 : get_current_orientation_with_block selected # 16 select u place u inspect get_current_orientation_with_block_internal u dig swap select ;
 :: get_current_orientation_with_block_internal retry
 	local b = pop()
