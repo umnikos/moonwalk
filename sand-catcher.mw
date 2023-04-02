@@ -1,14 +1,18 @@
 include turtle.mw
 
+" TODO: an actual system for overwriting methods please " del
+: move dup moving success? not { dup detect { dup dig move } { dup attacking move } ifelse } { del } ifelse ;
+: place dup placing success? not { dup detect { dup dig place } { dup attacking place } ifelse } { del } ifelse ;
+
 : place_things # 1 select u dig u place ;
 : pack_things # 1 select u dig ;
 
 : non_sand? dup detect swap inspect_name " minecraft:sand " = not and ;
 
 : locate_sand f non_sand? { locate_sand_up } { } ifelse ;
-: locate_sand_up u digmove f non_sand? { locate_sand_up } { } ifelse ;
+: locate_sand_up u move f non_sand? { locate_sand_up } { } ifelse ;
 
-: dig_sand_here d non_sand? { } { d digmove dig_sand_here } ifelse ;
+: dig_sand_here d non_sand? { } { d move dig_sand_here } ifelse ;
 :: f_sucking retry
  turtle.suck()
 ;;
@@ -27,10 +31,10 @@ include turtle.mw
 : begin " begin " ;
 : end dup " begin " = { del } { del end } ifelse ;
 
-: drain_column begin dig_sand_here locate_sand dig_sand_forward dump_sand refuel_if_needed end ;
+: drain_column begin refuel_if_needed dig_sand_here locate_sand dig_sand_forward dump_sand end ;
 
 : drain_chunk # 16 # 16 { drain_column } patrol ;
-: next_chunk { u digmove } # 10 times { f digmove } # 7 times u dig l turn { f digmove } # 9 times ;
+: next_chunk { u move } # 10 times { f move } # 7 times u dig l turn { f move } # 9 times ;
 
 : ready crash { drain_chunk next_chunk } forever ;
 repl

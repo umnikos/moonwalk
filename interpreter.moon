@@ -228,7 +228,7 @@ dictionary["::"] = {
 		end
 		local prebody = ""
 		if recovery ~= "pure" then
-		  prebody = "unget_word(\\""..name.."\\")\\nunget_word(\\""..recovery.."\\")\\nunget_word(\\"cooldown\\")\\ncheckpoint()\\nget_word()\\nget_word()\\nget_word()\\n"
+		  prebody = "unget_word(\\""..name.."\\")\\nunget_word(\\""..recovery.."\\")\\nunget_word(\\"boot_cooldown\\")\\ncheckpoint()\\nget_word()\\nget_word()\\nget_word()\\n"
 		end
 		local postbody = ""
 		local body

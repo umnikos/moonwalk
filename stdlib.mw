@@ -5,6 +5,12 @@
 	get_word()
 ;;
 
+:: del pure
+	pop()
+;;
+
+" TODO: implement a recovery repl when sigterm is received " del
+
 :: $ pure
 	-- TODO: call "cooldown" before executing a recovery word!!!
 	function length(x)
@@ -109,13 +115,25 @@
 	local x = pop()
 	push(x-y)
 ;;
+" TODO: two types of div " del
 :: div pure
 	local y = pop()
 	local x = pop()
-	push(x/y)
+	push(math.floor(x/y))
+;;
+:: rem pure
+	local y = pop()
+	local x = pop()
+	push(x%y)
 ;;
 :: = pure
 	push(pop() == pop())
+;;
+:: < pure
+	push(pop() > pop())
+;;
+:: > pure
+	push(pop() < pop())
 ;;
 :: # pure
 	push(deserialize(get_word()))
@@ -141,9 +159,6 @@
 	local x = pop()
 	push(x)
 	push(x)
-;;
-:: del pure
-	pop()
 ;;
 :: swap pure
 	local x = pop()
@@ -198,6 +213,7 @@
 		while os.clock() < target_time do end
 	end
 ;;
+: boot_cooldown cooldown " Recovering... " print cooldown cooldown cooldown ;
 
 :: concat pure
 	local b = pop()

@@ -1,14 +1,25 @@
 include turtle.mw
 
 " TODO: an actual system for overwriting methods please " del
-: move dup moving success? not { dup detect { dup dig move } { dup attacking move } ifelse } { del } ifelse ;
-: place dup placing success? not { dup detect { dup dig place } { dup attacking place } ifelse } { del } ifelse ;
+: move dup moving success? not { dup detect { dup dig move } { dup attacking cooldown move } ifelse } { del } ifelse ;
+: place dup placing success? not { dup detect { dup dig place } { dup attacking cooldown place } ifelse } { del } ifelse ;
+
+" TODO: make a second stack " del
+:: stash pure
+	stash = pop()
+;;
+:: unstash pure
+	push(stash)
+;;
 
 :: sucking retry
 	turtle.suck()
 ;;
 :: sucking_down retry
 	turtle.suckDown()
+;;
+:: sucking_up retry
+	turtle.suckUp()
 ;;
 :: negate_direction pure
 	local dir = pop()
@@ -42,12 +53,21 @@ include turtle.mw
 : dump_inv # 1 select u place # 2 { dup select u drop # 1 add } # 14 times del # 1 select u dig ;
 : maintain_inv # 15 select item_count # 0 = not { dump_inv } if # 1 select ;
 
-: take_out # 1 select f dig sucking f move maintain_inv ;
+:: refuel_needed? retry
+	push(turtle.getFuelLevel()<5000)
+;;
+:: refuel retry
+	turtle.refuel()
+;;
+: refuel_if_needed refuel_needed? { # 16 select u place # 1 u suck_to_count refuel u drop u dig # 1 select } if ;
+
+: take_out # 1 select f dig sucking u dig sucking_up d dig sucking_down f move maintain_inv refuel_if_needed ;
 : mine_row { take_out } swap # 1 sub times ;
 : perform_turn dup turn take_out dup turn ;
 : mine_layer_with_dir reach { over mine_row perform_turn negate_direction } swap # 1 sub times over mine_row ;
 
-: mine_volume r swap { d dig sucking_down d move mine_layer_with_dir r turn r turn } swap times ;
+: mine_volume_action d move d move mine_layer_with_dir r turn r turn u dig d move ;
+: mine_volume r swap { mine_volume_action } swap times ;
 
 crash
 
@@ -60,4 +80,12 @@ read_line as_number
 read_line as_number
 " Enter y dimension (downwards): " print
 read_line as_number
-mine_volume dump_inv
+dup # 3 < { " y must be at least 3! aborting " print } { 
+	refuel_if_needed 
+	dup # 3 rem stash
+	# 3 div mine_volume 
+	unstash # 0 = { } if
+	unstash # 1 = { u move u move mine_volume_action } if 
+	unstash # 2 = { u move mine_volume_action } if
+	dump_inv
+} ifelse

@@ -68,22 +68,12 @@ include turtle.mw
  : d " up " ;
  : u " down " ;
  : top " bottom " ;
- { cauldron_chunk same_chunk } forever
+ { drain_chunk same_chunk } forever
  : u " up " ;
  : d " down " ;
  : top " top " ;
 ;
 
-: drain_cauldron place_things aquire_bucket sucking_cauldron success? { do_thing_with_bucket pack_things } { pack_things } ifelse ;
-
-" even more cursed " del
-: cauldron_chunk 
- # 13 select d dig d move
- : move quote { moving } concat { # 13 select f dig } swap concat { r turn r turn # 13 select f place r turn r turn } concat force_success ;
- # 16 # 16 { drain_cauldron } patrol
- : move quote { moving } concat force_success ;
- # 13 select u move d place
-;
 : same_chunk { f move } # 7 times l turn { b move } # 7 times ;
 
 
