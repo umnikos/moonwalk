@@ -12,6 +12,7 @@ Something like this:
 ```
 It is a concatenative language, meaning a program simply consists of a list of procedures to call, 
 which pass arguments to each other through a single data stack.
+For a longer explanation, check out [the tutorial.](/tutorial.md)
 
 ## What's in this repo?
 - `interpreter.moon` - The moonwalk interpreter
