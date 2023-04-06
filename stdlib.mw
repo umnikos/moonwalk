@@ -9,9 +9,8 @@
 	pop()
 ;;
 
-" TODO: implement a recovery repl when sigterm is received " del
-
 :: $ pure
+    -- TODO: implement a recovery repl when sigterm is received
 	-- TODO: call "cooldown" before executing a recovery word!!!
 	function length(x)
 		return table.getn(x)
