@@ -203,6 +203,14 @@ include stdlib.mw
 ;;
 : place quote { placing } concat force_success ;
 
+" TODO: make it so recovery words save the necessary state info on their own without every user having to do that beforehand " del
+: crafting save_held_item crafting_internal ;
+: crafting_recovery placing_recovery ;
+:: crafting_internal crafting_recovery
+	set_success(turtle.craft())
+;;
+: craft { crafting } force_success ;
+
 :: item_count retry
 	push(turtle.getItemCount())
 ;;
