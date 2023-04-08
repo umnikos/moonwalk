@@ -214,6 +214,23 @@
 ;;
 : boot_cooldown cooldown " Recovering... " print cooldown cooldown cooldown ;
 
+:: $ pure
+	reboot_words = {}
+;; $
+:: reboot_handler pure
+	local i = #reboot_words
+	while i>0 do
+		unget_word(reboot_words[i])
+		i = i - 1
+	end
+;;
+:: on_reboot pure
+	local word = get_word()
+	reboot_words[#reboot_words+1] = word
+;;
+
+on_reboot boot_cooldown
+
 :: concat pure
 	local b = pop()
 	local a = pop()
