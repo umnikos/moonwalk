@@ -168,7 +168,6 @@ save_state = ->
 		dictionary: dictionary
 		stack_index: stack_index
 	}
-	serialize current_state
 	write_file "new_state.state", serialize current_state
 	rename_file "new_state.state", "current_state.state"
 	delete_file "new_state.state"
