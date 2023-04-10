@@ -93,20 +93,40 @@ parse = (s) ->
 	[word for word in string.gmatch program, "([^ ]+)"]
 -- parsed is the result of parsing a program
 -- current_word points 1 word before the next word in line for execution
-local parsed
-local current_word
+-- local parsed
+-- local current_word
+local task_queue
 
 -- TODO: `get_raw_word` for use in `"`
 get_word = ->
-	current_word += 1
 	-- TODO: error handling in the callers, not the callee
 	-- if not parsed[current_word] then
 	--	 error "RAN OUT OF WORDS"
-	parsed[current_word]
+	s, e = string.find task_queue, "%S+"
+	if not s
+		return nil
+	--print e
+	word = string.sub task_queue, s, e
+	--print word
+	task_queue = string.sub task_queue, e+1
+	return word
+
+get_word_raw = ->
+	if string.sub(task_queue,1,1) == " "
+		word = ""
+		task_queue = string.sub task_queue, 2
+		return word
+	s, e = string.find task_queue, "[%S]+"
+	if s ~= 1
+		s, e = string.find task_queue, "[^%S ]+"
+	--print e
+	word = string.sub task_queue, s, e
+	--print word
+	task_queue = string.sub task_queue, e+1
+	return word
 
 unget_word = (word) ->
-	parsed[current_word] = word
-	current_word -= 1
+	task_queue = word.." "..task_queue
 
 -- user-defined lua functions, not to be called from moonwalk but from lua
 local user_env
@@ -124,17 +144,17 @@ restore_env = (old_env) ->
 	user_env.push = push
 	user_env.pop = pop
 	user_env.get_word = get_word
+	user_env.get_word_raw = get_word_raw
 	user_env.unget_word = unget_word
 	user_env.dictionary = dictionary
-	user_env.parse = parse
+	--user_env.parse = parse
 	user_env.read_file = read_file
 	user_env.serialize = serialize
 	user_env.deserialize = deserialize
 	user_env.checkpoint = checkpoint
 	user_env
-restore_task_queue = (old_task_queue, old_current_word) ->
-	parsed = old_task_queue
-	current_word = old_current_word
+restore_task_queue = (old_task_queue) ->
+	task_queue = old_task_queue
 restore_stack = (old_stack, old_stack_index) ->
 	data_stack = old_stack
 	stack_index = old_stack_index
@@ -143,12 +163,12 @@ restore_dictionary = (old_dictionary) ->
 save_state = -> 
 	current_state = {
 		stack: data_stack
-		task_queue: parsed
+		task_queue: task_queue
 		env: user_env
 		dictionary: dictionary
-		current_word: current_word
 		stack_index: stack_index
 	}
+	serialize current_state
 	write_file "new_state.state", serialize current_state
 	rename_file "new_state.state", "current_state.state"
 	delete_file "new_state.state"
@@ -166,20 +186,19 @@ restore_state = ->
 		--print "NEW STATE CREATED"
 		local new_task_queue
 		if args[1]
-			new_task_queue = parse read_file args[1]
+			new_task_queue = read_file args[1]
 		else
-			new_task_queue = parse ""
+			new_task_queue = ""
 		old_state = {
 			stack: {}
 			task_queue: new_task_queue
 			env: {}
 			dictionary: {}
-			current_word: 0
 			stack_index: 0
 		}
 	restore_dictionary old_state.dictionary
 	restore_stack old_state.stack, old_state.stack_index
-	restore_task_queue old_state.task_queue, old_state.current_word
+	restore_task_queue old_state.task_queue
 	restore_env old_state.env
 delete_state = ->
 	delete_file "current_state.state"
@@ -246,7 +265,7 @@ dictionary["::"] = {
 		length = 0
 		while true do
 			local word
-			word = get_word()
+			word = get_word_raw()
 			if word == ";;" then
 				-- finish definition
 				dictionary[name] = {
@@ -267,17 +286,16 @@ dictionary["include"] = {
 	type: "lua"
 	body: '
 		local name = get_word()
-		local code = parse(read_file(name))
-		local i = table.getn(code)
-		while i > 0 do
-			unget_word(code[i])
-			i = i - 1
+		local code = read_file(name)
+		if code then
+			unget_word(code)
 		end
 	'
 }
 
 -- REPL
 while true do
+	--print "---EVAL---"
 	word = get_word!
 	if not word then
 		break
