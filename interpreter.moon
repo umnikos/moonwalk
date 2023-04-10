@@ -1,5 +1,7 @@
 import open from io
 
+DEBUG = false
+
 args = {...}
 
 -- get the code as a string
@@ -102,6 +104,8 @@ get_word = ->
 	-- TODO: error handling in the callers, not the callee
 	-- if not parsed[current_word] then
 	--	 error "RAN OUT OF WORDS"
+	if DEBUG
+		print "!!!"..(string.sub task_queue, 1, 30).."!!!"
 	s, e = string.find task_queue, "%S+"
 	if not s
 		return nil
@@ -109,20 +113,26 @@ get_word = ->
 	word = string.sub task_queue, s, e
 	--print word
 	task_queue = string.sub task_queue, e+1
+	if DEBUG
+		print("{"..word.."}")
 	return word
 
 get_word_raw = ->
-	if string.sub(task_queue,1,1) == " "
+	if DEBUG
+		print "!!!"..(string.sub task_queue, 1, 30).."!!!"
+	if string.sub(task_queue,1,2) == "  "
 		word = ""
 		task_queue = string.sub task_queue, 2
 		return word
 	s, e = string.find task_queue, "[%S]+"
-	if s ~= 1
+	if s ~= 1 and string.sub(task_queue,1,1) ~= " "
 		s, e = string.find task_queue, "[^%S ]+"
 	--print e
 	word = string.sub task_queue, s, e
 	--print word
 	task_queue = string.sub task_queue, e+1
+	if DEBUG
+		print("{{"..word.."}}")
 	return word
 
 unget_word = (word) ->
@@ -294,7 +304,8 @@ dictionary["include"] = {
 
 -- REPL
 while true do
-	--print "---EVAL---"
+	if DEBUG
+		print "---EVAL---"
 	word = get_word!
 	if not word then
 		break
