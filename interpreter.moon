@@ -28,6 +28,7 @@ rename_file = (old, new) ->
 	else
 		os.rename old, new
 
+-- FIXME FIXME FIXME: THIS IS SLOW AF AND IT'S CAUSING PROBLEMS
 -- serialization and deserialization
 serialize = (o) ->
 	if "string" == type o
@@ -95,6 +96,7 @@ parse = (s) ->
 local parsed
 local current_word
 
+-- TODO: `get_raw_word` for use in `"`
 get_word = ->
 	current_word += 1
 	-- TODO: error handling in the callers, not the callee
@@ -186,6 +188,7 @@ restore_state!
 
 -- evaluation of lua and moonwalk code
 eval_lua = (body) ->
+	-- FIXME: keep loadstringed body instead of parsing every time
 	f = loadstring body
 	if not f then
 		print body
