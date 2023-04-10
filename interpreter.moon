@@ -49,13 +49,13 @@ serialize = (o) ->
 		return s.." }"
 	else if "function" == type o
 		str = string.dump o
-		return "(function(env)\n local f = loadstring("..serialize(str)..")\n setfenv(f,env)\n return f".."\n end)(env)"
+		return "loadstring("..serialize(str)..")"
 	else
 		error "DIDN'T THINK OF TYPE "..(type o).." FOR SERIALIZING"
-deserialize = (str,env) ->
-	s = "return function(env)\n return "..str.."\n end"
+deserialize = (str) ->
+	s = "return "..str
 	f = (loadstring s)!
-	return f env
+	return f
 
 -- sigil helper function
 alphanumeric = (c) -> if c\match("%w") then true else false 
@@ -161,7 +161,7 @@ restore_state = ->
 	local old_state
 	if str
 		--print "OLD STATE GOTTEN"
-		old_state = deserialize str, {}
+		old_state = deserialize str
 	else
 		--print "NEW STATE CREATED"
 		local new_task_queue
