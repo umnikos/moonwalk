@@ -187,13 +187,19 @@ delete_state = ->
 restore_state!
 
 -- evaluation of lua and moonwalk code
+dictionary_lua_cache = { }
 eval_lua = (body) ->
-	-- FIXME: keep loadstringed body instead of parsing every time
-	f = loadstring body
-	if not f then
-		print body
-		error "INVALID LUA DEFINITION"
-	setfenv f, user_env
+	cached = dictionary_lua_cache[body]
+	f = nil
+	if cached
+		f = cached
+	else
+		f = loadstring body
+		if not f then
+			print body
+			error "INVALID LUA DEFINITION"
+		setfenv f, user_env
+		dictionary_lua_cache[body] = f
 	f!
 
 eval_mw = (body) -> 
