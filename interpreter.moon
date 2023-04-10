@@ -31,27 +31,28 @@ rename_file = (old, new) ->
 -- FIXME FIXME FIXME: THIS IS SLOW AF AND IT'S CAUSING PROBLEMS
 -- serialization and deserialization
 serialize = (o) ->
-	if "string" == type o
+	t = type o
+	if "string" == t
 		s = string.format "%q", o
 		return s
-	else if "number" == type o
+	else if "number" == t
 		if o == 1/0
 			return "(1/0)"
 		return o
-	else if "boolean" == type o
+	else if "boolean" == t
 		return tostring(o)
-	else if "nil" == type o
+	else if "nil" == t
 		return "nil"
-	else if "table" == type o
+	else if "table" == t
 		s = "{ "
 		for k,v in pairs(o)
-			s = s.."["..serialize(k).."] = "..(serialize v)..", "
+			s = s.."["..(serialize k).."] = "..(serialize v)..", "
 		return s.." }"
-	else if "function" == type o
+	else if "function" == t
 		str = string.dump o
 		return "loadstring("..serialize(str)..")"
 	else
-		error "DIDN'T THINK OF TYPE "..(type o).." FOR SERIALIZING"
+		error "DIDN'T THINK OF TYPE "..(t).." FOR SERIALIZING"
 deserialize = (str) ->
 	s = "return "..str
 	f = (loadstring s)!
