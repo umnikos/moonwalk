@@ -35,24 +35,23 @@ serialize = (o) ->
 	if "string" == t
 		s = string.format "%q", o
 		return s
-	else if "number" == t
+	if "number" == t
 		if o == 1/0
 			return "(1/0)"
 		return o
-	else if "boolean" == t
+	if "boolean" == t
 		return tostring(o)
-	else if "nil" == t
+	if "nil" == t
 		return "nil"
-	else if "table" == t
+	if "table" == t
 		s = "{ "
 		for k,v in pairs(o)
 			s = s.."["..(serialize k).."] = "..(serialize v)..", "
 		return s.." }"
-	else if "function" == t
+	if "function" == t
 		str = string.dump o
 		return "loadstring("..serialize(str)..")"
-	else
-		error "DIDN'T THINK OF TYPE "..(t).." FOR SERIALIZING"
+	error "DIDN'T THINK OF TYPE "..(t).." FOR SERIALIZING"
 deserialize = (str) ->
 	s = "return "..str
 	f = (loadstring s)!
