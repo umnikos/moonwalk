@@ -39,10 +39,6 @@ serialize = (o) ->
 		if o == 1/0
 			return "(1/0)"
 		return o
-	if "boolean" == t
-		return tostring(o)
-	if "nil" == t
-		return "nil"
 	if "table" == t
 		s = "{ "
 		for k,v in pairs(o)
@@ -51,6 +47,10 @@ serialize = (o) ->
 	if "function" == t
 		str = string.dump o
 		return "loadstring("..serialize(str)..")"
+	if "boolean" == t
+		return tostring(o)
+	if "nil" == t
+		return "nil"
 	error "DIDN'T THINK OF TYPE "..(t).." FOR SERIALIZING"
 deserialize = (str) ->
 	s = "return "..str
