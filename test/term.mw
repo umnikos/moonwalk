@@ -1,0 +1,101 @@
+include stdlib.mw
+
+:: term_write retry
+    local text = pop()
+    term.write(text)
+;;
+
+:: term_scroll retry
+    local y = pop()
+    term.scroll(y)
+;;
+
+:: term_getCursorPos retry
+    local x, y = term.getCursorPos()
+    push(x)
+    push(y)
+;;
+
+:: term_setCursorPos retry
+    local x = pop()
+    local y = pop()
+    term.setCursorPos(x, y)   
+;;
+
+:: term_getCursorBlink retry
+    push(term.getCursorBlink())
+;;
+
+:: term_setCursorBlink retry
+    local blink = pop()
+    term.setCursorBlink(blink)
+;;
+
+:: term_getSize retry
+    local x, y = term.getSize()
+    push(x)
+    push(y)
+;;
+
+:: term_clear retry
+    term.clear()
+;;
+
+:: term_clearLine retry
+    term.clearLine()
+;;
+
+:: term_getTextColor retry
+    push(term.getTextColor())
+;;
+
+:: term_setTextColor retry
+    local color = pop()
+    term.setTextColor(color)
+;;
+
+:: term_getBackgroundColor retry
+    push(term.term_getBackgroundColor())
+;;
+
+:: term_setBackgroundColor retry
+    local color = pop()
+    term.setBackgroundColor(color)
+;;
+
+:: term_isColor retry
+    push(term.isColor())
+;;
+
+:: term_blit retry
+    local text = pop()
+    local textColor = pop()
+    local backgroundColor = pop()
+
+    term.blit(text, textColor, backgroundColor)
+;;
+
+:: term_setPaletteColor_hex retry
+    local color = pop()
+    local index = pop()
+
+    term.setPaletteColor(index, color)
+;;
+
+:: term_setPaletteColor_rgb retry
+    local index = pop()
+    local r = pop()
+    local g = pop()
+    local b = pop()
+
+    term.setPaletteColor(index, r, g, b)
+;;
+
+:: term_getPaletteColor_rgb retry
+    local color = pop()
+    local r,g,b = term.getPaletteColor(color)
+
+    push(r)
+    push(g)
+    push(b)
+;;

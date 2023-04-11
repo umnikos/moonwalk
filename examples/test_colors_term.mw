@@ -5,7 +5,7 @@ include colors.mw
 : test_color
     term_setBackgroundColor
     term_clear
-    { cooldown } # 1 times
+    cooldown
 ;
 
 colors_white test_color
