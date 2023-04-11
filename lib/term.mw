@@ -12,13 +12,13 @@ include stdlib.mw
 
 :: term_getCursorPos retry
     local x, y = term.getCursorPos()
-    push(x)
     push(y)
+    push(x)
 ;;
 
 :: term_setCursorPos retry
-    local x = pop()
     local y = pop()
+    local x = pop()
     term.setCursorPos(x, y)   
 ;;
 
@@ -33,8 +33,8 @@ include stdlib.mw
 
 :: term_getSize retry
     local x, y = term.getSize()
-    push(x)
     push(y)
+    push(x)
 ;;
 
 :: term_clear retry
@@ -68,25 +68,25 @@ include stdlib.mw
 ;;
 
 :: term_blit retry
-    local text = pop()
-    local textColor = pop()
     local backgroundColor = pop()
+    local textColor = pop()
+    local textColor = pop()
 
     term.blit(text, textColor, backgroundColor)
 ;;
 
 :: term_setPaletteColor_hex retry
-    local color = pop()
     local index = pop()
+    local color = pop()
 
     term.setPaletteColor(index, color)
 ;;
 
 :: term_setPaletteColor_rgb retry
-    local index = pop()
     local r = pop()
     local g = pop()
     local b = pop()
+    local index = pop()
 
     term.setPaletteColor(index, r, g, b)
 ;;
@@ -95,7 +95,7 @@ include stdlib.mw
     local color = pop()
     local r,g,b = term.getPaletteColor(color)
 
-    push(r)
-    push(g)
     push(b)
+    push(g)
+    push(r)
 ;;
