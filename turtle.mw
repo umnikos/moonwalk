@@ -264,7 +264,10 @@ include stdlib.mw
   set_success(false)
   return
  end
- chest.setFrequency(2^pop(),2^pop(),2^pop())
+ local third = 2^pop()
+ local second = 2^pop()
+ local first = 2^pop()
+ chest.setFrequency(first, second, third)
  set_success(true)
 ;;
 

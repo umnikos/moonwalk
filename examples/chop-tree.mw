@@ -32,7 +32,7 @@ include turtle.mw
 	push(turtle.getFuelLevel() < 5000)
 ;;
 : set_chest_to_lava # 1 # 1 # 1 f set_echest ;
-: set_chest_to_buckets # 0 # 1 # 1 f set_echest ;
+: set_chest_to_buckets # 1 # 1 # 0 f set_echest ;
 :: use_lava retry
 	turtle.refuel()
 ;;

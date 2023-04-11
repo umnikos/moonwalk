@@ -70,7 +70,7 @@ include stdlib.mw
 :: term_blit retry
     local backgroundColor = pop()
     local textColor = pop()
-    local textColor = pop()
+    local text = pop()
 
     term.blit(text, textColor, backgroundColor)
 ;;
@@ -83,9 +83,9 @@ include stdlib.mw
 ;;
 
 :: term_setPaletteColor_rgb retry
-    local r = pop()
-    local g = pop()
     local b = pop()
+    local g = pop()
+    local r = pop()
     local index = pop()
 
     term.setPaletteColor(index, r, g, b)
@@ -95,7 +95,7 @@ include stdlib.mw
     local color = pop()
     local r,g,b = term.getPaletteColor(color)
 
-    push(b)
-    push(g)
     push(r)
+    push(g)
+    push(b)
 ;;
