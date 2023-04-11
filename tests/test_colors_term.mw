@@ -1,6 +1,6 @@
-include term.mw
+include lib/term.mw
 include stdlib.mw
-include colors.mw
+include lib/colors.mw
 
 : test_color
     term_setBackgroundColor

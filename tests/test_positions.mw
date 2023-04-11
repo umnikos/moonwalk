@@ -1,4 +1,4 @@
-include term.mw
+include lib/term.mw
 include stdlib.mw
 
 # 2 # 1 term_setCursorPos

@@ -1,6 +1,6 @@
-include term.mw
+include lib/term.mw
 include stdlib.mw
-include colors.mw
+include lib/colors.mw
 
 colors_blue # 0x87cdff term_setPaletteColor_hex
 colors_blue term_setBackgroundColor
