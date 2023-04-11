@@ -1,5 +1,7 @@
 import open from io
 
+DEBUG = false
+
 args = {...}
 
 -- get the code as a string
@@ -28,33 +30,34 @@ rename_file = (old, new) ->
 	else
 		os.rename old, new
 
+-- FIXME FIXME FIXME: THIS IS SLOW AF AND IT'S CAUSING PROBLEMS
 -- serialization and deserialization
 serialize = (o) ->
-	if "string" == type o
+	t = type o
+	if "string" == t
 		s = string.format "%q", o
 		return s
-	else if "number" == type o
+	if "number" == t
 		if o == 1/0
 			return "(1/0)"
 		return o
-	else if "boolean" == type o
-		return tostring(o)
-	else if "nil" == type o
-		return "nil"
-	else if "table" == type o
+	if "table" == t
 		s = "{ "
 		for k,v in pairs(o)
-			s = s.."["..serialize(k).."] = "..(serialize v)..", "
+			s = s.."["..(serialize k).."] = "..(serialize v)..", "
 		return s.." }"
-	else if "function" == type o
+	if "function" == t
 		str = string.dump o
-		return "(function(env)\n local f = loadstring("..serialize(str)..")\n setfenv(f,env)\n return f".."\n end)(env)"
-	else
-		error "DIDN'T THINK OF TYPE "..(type o).." FOR SERIALIZING"
-deserialize = (str,env) ->
-	s = "return function(env)\n return "..str.."\n end"
+		return "loadstring("..serialize(str)..")"
+	if "boolean" == t
+		return tostring(o)
+	if "nil" == t
+		return "nil"
+	error "DIDN'T THINK OF TYPE "..(t).." FOR SERIALIZING"
+deserialize = (str) ->
+	s = "return "..str
 	f = (loadstring s)!
-	return f env
+	return f
 
 -- sigil helper function
 alphanumeric = (c) -> if c\match("%w") then true else false 
@@ -92,19 +95,48 @@ parse = (s) ->
 	[word for word in string.gmatch program, "([^ ]+)"]
 -- parsed is the result of parsing a program
 -- current_word points 1 word before the next word in line for execution
-local parsed
-local current_word
+-- local parsed
+-- local current_word
+local task_queue
 
+-- TODO: `get_raw_word` for use in `"`
 get_word = ->
-	current_word += 1
 	-- TODO: error handling in the callers, not the callee
 	-- if not parsed[current_word] then
 	--	 error "RAN OUT OF WORDS"
-	parsed[current_word]
+	if DEBUG
+		print "!!!"..(string.sub task_queue, 1, 30).."!!!"
+	s, e = string.find task_queue, "%S+"
+	if not s
+		return nil
+	--print e
+	word = string.sub task_queue, s, e
+	--print word
+	task_queue = string.sub task_queue, e+1
+	if DEBUG
+		print("{"..word.."}")
+	return word
+
+get_word_raw = ->
+	if DEBUG
+		print "!!!"..(string.sub task_queue, 1, 30).."!!!"
+	if string.sub(task_queue,1,2) == "  "
+		word = ""
+		task_queue = string.sub task_queue, 2
+		return word
+	s, e = string.find task_queue, "[%S]+"
+	if s ~= 1 and string.sub(task_queue,1,1) ~= " "
+		s, e = string.find task_queue, "[^%S ]+"
+	--print e
+	word = string.sub task_queue, s, e
+	--print word
+	task_queue = string.sub task_queue, e+1
+	if DEBUG
+		print("{{"..word.."}}")
+	return word
 
 unget_word = (word) ->
-	parsed[current_word] = word
-	current_word -= 1
+	task_queue = word.." "..task_queue
 
 -- user-defined lua functions, not to be called from moonwalk but from lua
 local user_env
@@ -122,17 +154,17 @@ restore_env = (old_env) ->
 	user_env.push = push
 	user_env.pop = pop
 	user_env.get_word = get_word
+	user_env.get_word_raw = get_word_raw
 	user_env.unget_word = unget_word
 	user_env.dictionary = dictionary
-	user_env.parse = parse
+	--user_env.parse = parse
 	user_env.read_file = read_file
 	user_env.serialize = serialize
 	user_env.deserialize = deserialize
 	user_env.checkpoint = checkpoint
 	user_env
-restore_task_queue = (old_task_queue, old_current_word) ->
-	parsed = old_task_queue
-	current_word = old_current_word
+restore_task_queue = (old_task_queue) ->
+	task_queue = old_task_queue
 restore_stack = (old_stack, old_stack_index) ->
 	data_stack = old_stack
 	stack_index = old_stack_index
@@ -141,10 +173,9 @@ restore_dictionary = (old_dictionary) ->
 save_state = -> 
 	current_state = {
 		stack: data_stack
-		task_queue: parsed
+		task_queue: task_queue
 		env: user_env
 		dictionary: dictionary
-		current_word: current_word
 		stack_index: stack_index
 	}
 	write_file "new_state.state", serialize current_state
@@ -159,25 +190,24 @@ restore_state = ->
 	local old_state
 	if str
 		--print "OLD STATE GOTTEN"
-		old_state = deserialize str, {}
+		old_state = deserialize str
 	else
 		--print "NEW STATE CREATED"
 		local new_task_queue
 		if args[1]
-			new_task_queue = parse read_file args[1]
+			new_task_queue = read_file args[1]
 		else
-			new_task_queue = parse ""
+			new_task_queue = ""
 		old_state = {
 			stack: {}
 			task_queue: new_task_queue
 			env: {}
 			dictionary: {}
-			current_word: 0
 			stack_index: 0
 		}
 	restore_dictionary old_state.dictionary
 	restore_stack old_state.stack, old_state.stack_index
-	restore_task_queue old_state.task_queue, old_state.current_word
+	restore_task_queue old_state.task_queue
 	restore_env old_state.env
 delete_state = ->
 	delete_file "current_state.state"
@@ -185,12 +215,19 @@ delete_state = ->
 restore_state!
 
 -- evaluation of lua and moonwalk code
+dictionary_lua_cache = { }
 eval_lua = (body) ->
-	f = loadstring body
-	if not f then
-		print body
-		error "INVALID LUA DEFINITION"
-	setfenv f, user_env
+	cached = dictionary_lua_cache[body]
+	f = nil
+	if cached
+		f = cached
+	else
+		f = loadstring body
+		if not f then
+			print body
+			error "INVALID LUA DEFINITION"
+		setfenv f, user_env
+		dictionary_lua_cache[body] = f
 	f!
 
 eval_mw = (body) -> 
@@ -237,7 +274,7 @@ dictionary["::"] = {
 		length = 0
 		while true do
 			local word
-			word = get_word()
+			word = get_word_raw()
 			if word == ";;" then
 				-- finish definition
 				dictionary[name] = {
@@ -258,17 +295,17 @@ dictionary["include"] = {
 	type: "lua"
 	body: '
 		local name = get_word()
-		local code = parse(read_file(name))
-		local i = table.getn(code)
-		while i > 0 do
-			unget_word(code[i])
-			i = i - 1
+		local code = read_file(name)
+		if code then
+			unget_word(code)
 		end
 	'
 }
 
 -- REPL
 while true do
+	if DEBUG
+		print "---EVAL---"
 	word = get_word!
 	if not word then
 		break

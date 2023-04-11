@@ -258,12 +258,8 @@ on_reboot boot_cooldown
 ;;
 
 :: eval_line pure
- local code = parse(pop())
- local i = table.getn(code)
- while i>0 do
-  unget_word(code[i])
-  i = i - 1
- end
+ local code = pop()
+ unget_word(code)
 ;;
 
 : repl read_line eval_line repl ;

@@ -62,6 +62,7 @@ startup = '
 	shell.run("emu","close")
 '
 delete_file "out.lua"
+os.execute "moonc interpreter.moon"
 write_file "startup.lua", startup
 os.execute "./ccemux -c ."
 delete_file "startup.lua"
