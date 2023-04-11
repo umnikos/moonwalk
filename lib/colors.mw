@@ -1,0 +1,16 @@
+: colors_white # 1 ;
+: colors_orange # 2 ;
+: colors_magenta # 4 ;
+: colors_lightBlue # 8 ;
+: colors_yellow # 16 ;
+: colors_lime # 32 ;
+: colors_pink # 64 ;
+: colors_gray # 128 ;
+: colors_lightGray # 256 ;
+: colors_cyan # 512 ;
+: colors_purple # 1024 ;
+: colors_blue # 2048 ;
+: colors_brown # 4096 ;
+: colors_green # 8192 ;
+: colors_red # 16384 ;
+: colors_black # 32768 ;

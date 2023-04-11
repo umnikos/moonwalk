@@ -1,0 +1,26 @@
+include lib/term.mw
+include stdlib.mw
+include lib/colors.mw
+
+: test_color
+    term_setBackgroundColor
+    term_clear
+    cooldown
+;
+
+colors_white test_color
+colors_orange test_color
+colors_magenta test_color
+colors_lightBlue test_color
+colors_yellow test_color
+colors_lime test_color
+colors_pink test_color
+colors_gray test_color
+colors_lightGray test_color
+colors_cyan test_color
+colors_purple test_color
+colors_blue test_color
+colors_brown test_color
+colors_green test_color
+colors_red test_color
+colors_black test_color
