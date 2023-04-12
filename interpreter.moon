@@ -171,6 +171,8 @@ restore_stack = (old_stack, old_stack_index) ->
 restore_dictionary = (old_dictionary) ->
 	dictionary = old_dictionary
 save_state = -> 
+	-- TODO: save env and dict only when they've changed to minimize IO
+	-- (use __index and __newindex in a metatable to monitor for changes)
 	current_state = {
 		stack: data_stack
 		task_queue: task_queue
