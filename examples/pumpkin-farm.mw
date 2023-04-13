@@ -1,0 +1,18 @@
+include turtle.mw
+
+: harvest d inspect_name " minecraft:pumpkin " = { d dig } if ;
+: harvest_chunk # 1 select # 16 # 16 { harvest } patrol ;
+
+: dump_harvest # 1 { dup select u drop # 1 add } # 15 times del ;
+
+: same_chunk { f move } # 7 times l turn { b move } # 7 times ;
+
+:: refuel_needed? retry
+ push(turtle.getFuelLevel()<5000)
+;;
+:: refuel retry
+ turtle.refuel()
+;;
+: refuel_if_needed refuel_needed? { # 14 select # 1 u suck_to_count refuel u drop refuel_if_needed } if ;
+
+crash { harvest_chunk dump_harvest same_chunk refuel_if_needed } forever
