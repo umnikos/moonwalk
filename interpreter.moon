@@ -180,12 +180,13 @@ save_state = ->
 		dictionary: dictionary
 		stack_index: stack_index
 	}
+	str = serialize current_state
 	delete_file "new_state.valid"
-	write_file "new_state.state", serialize current_state
+	write_file "new_state.state", str
 	write_file "new_state.valid", "true"
 
 	delete_file "current_state.valid"
-	rename_file "new_state.state", "current_state.state"
+	write_file "current_state.state", str
 	write_file "current_state.valid", "true"
 
 	delete_file "new_state.valid"
