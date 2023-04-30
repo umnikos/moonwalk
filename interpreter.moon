@@ -180,15 +180,35 @@ save_state = ->
 		dictionary: dictionary
 		stack_index: stack_index
 	}
+	delete_file "new_state.valid"
 	write_file "new_state.state", serialize current_state
+	write_file "new_state.valid", "true"
+
+	delete_file "current_state.valid"
 	rename_file "new_state.state", "current_state.state"
+	write_file "current_state.valid", "true"
+
+	delete_file "new_state.valid"
 	delete_file "new_state.state"
 store_state = save_state
 checkpoint = save_state
 restore_state = -> 
-	str = read_file "current_state.state"
+	str = nil
+	if not str
+		str = read_file "current_state.state"
+		valid = read_file "current_state.valid"
+		if valid ~= "true"
+			str = nil
+
+	if not str
+		str = read_file "new_state.state"
+		valid = read_file "new_state.valid"
+		if valid ~= "true"
+			str = nil
+
 	if args[1]
 		str = nil
+
 	local old_state
 	if str
 		--print "OLD STATE GOTTEN"
@@ -213,6 +233,7 @@ restore_state = ->
 	restore_env old_state.env
 delete_state = ->
 	delete_file "current_state.state"
+	delete_file "current_state.valid"
 
 restore_state!
 
