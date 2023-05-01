@@ -63,6 +63,7 @@ startup = '
 '
 delete_file "out.lua"
 os.execute "moonc interpreter.moon"
+os.execute "moonc bundle_state_as_program.moon"
 write_file "startup.lua", startup
 os.execute "./ccemux -c ."
 delete_file "startup.lua"
