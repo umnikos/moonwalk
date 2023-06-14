@@ -1,7 +1,20 @@
 include turtle.mw
 
-: fill # 2 select d placing success? { fill } { d detect not { fill_problem_resolver fill } if } ifelse ;
-: fill_problem_resolver item_count # 0 = { get_more_sand } { d attacking cooldown } ifelse ;
+:: fill retry
+	turtle.select(2)
+	while not turtle.detectDown() do
+		if not turtle.placeDown() then
+			if turtle.getItemCount() == 0 then
+				unget_word("fill")
+				unget_word("get_more_sand")
+				return
+			else
+				turtle.attackDown()
+			end
+		end
+	end
+;;
+
 : get_more_sand # 1 select u place # 2 select # 64 u suck_to_count # 1 select u dig ;
 
 :: as_number pure

@@ -1,5 +1,8 @@
 import open from io
 
+-- FIXME: WHY IS THIS STATE FILE 1 MEGABYTE.
+-- https://p.sc3.io/jbXrceRMr6
+
 DEBUG = false
 
 args = {...}
@@ -171,7 +174,8 @@ restore_stack = (old_stack, old_stack_index) ->
 restore_dictionary = (old_dictionary) ->
 	dictionary = old_dictionary
 save_state = -> 
-	-- TODO: save env and dict only when they've changed to minimize IO
+	-- FIXME: env and dict make up almost the entire state in volume
+	-- TODO: monitor for changes and write new state files that modify an initial snapshot
 	-- (use __index and __newindex in a metatable to monitor for changes)
 	current_state = {
 		stack: data_stack
