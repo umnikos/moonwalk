@@ -30,22 +30,23 @@ include stdlib.mw
 	}
 ;; $
 
-:: moving_recovery retry
+: moving_recovery over moving_recovery_internal ;
+:: moving_recovery_internal retry
 	local current_fuel = turtle.getFuelLevel()
+	local saved_fuel_level = pop()
 	if saved_fuel_level > current_fuel then
 		get_word() -- skip
 		pop()
 		set_success(true)
 	end
 ;;
-:: moving_check_preliminaries retry
-	if turtle.getFuelLevel() == 0 then
+: moving save_fuel_level swap moving_internal del ;
+:: save_fuel_level retry
+	local fuel_level = turtle.getFuelLevel()
+	if fuel_level == 0 then
 		error("CANNOT MOVE WITH 0 FUEL")
 	end
-;;
-: moving moving_check_preliminaries save_fuel_level moving_internal ;
-:: save_fuel_level retry
-	saved_fuel_level = turtle.getFuelLevel()
+	push(fuel_level)
 ;;
 :: moving_internal moving_recovery
 	local direction = pop()
@@ -80,7 +81,6 @@ include stdlib.mw
 	if a then push(b.name) else push("") end
 ;;
 
-: save_rotation get_current_rotation save_rotation_internal ;
 :: get_current_rotation retry
 	local block_scanner = peripheral.find("plethora:scanner")
 	if block_scanner then
@@ -108,13 +108,11 @@ include stdlib.mw
 	end
 ;;
 
-:: save_rotation_internal retry
-	saved_rotation = pop()
-;;
-: turning save_rotation turning_internal ;
-: turning_recovery get_current_rotation turning_recovery_internal ;
+: turning get_current_rotation swap turning_internal del ;
+: turning_recovery over get_current_rotation turning_recovery_internal ;
 :: turning_recovery_internal retry
 	local new_rotation = pop()
+	local saved_rotation = pop()
 	if new_rotation ~= saved_rotation then
 		get_word()
 		pop()
@@ -174,11 +172,13 @@ include stdlib.mw
 ;;
 : select quote { selecting } concat force_success ;
 
-: placing save_held_item placing_internal ;
+: placing save_held_item swap placing_internal del ;
 :: save_held_item retry
-	saved_held_item = turtle.getItemDetail()
+	push(turtle.getItemDetail())
 ;;
-:: placing_recovery retry
+: placing_recovery over placing_recovery_internal ;
+:: placing_recovery_internal retry
+	local saved_held_item = pop()
 	local held_item = turtle.getItemDetail()
 	local same_item = false
 	if held_item == saved_held_item then
@@ -204,8 +204,8 @@ include stdlib.mw
 : place quote { placing } concat force_success ;
 
 " TODO: make it so recovery words save the necessary state info on their own without every user having to do that beforehand " del
-: crafting save_held_item crafting_internal ;
-: crafting_recovery placing_recovery ;
+: crafting save_held_item swap crafting_internal del ;
+: crafting_recovery over placing_recovery ;
 :: crafting_internal crafting_recovery
 	set_success(turtle.craft())
 ;;

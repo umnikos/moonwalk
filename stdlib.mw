@@ -264,7 +264,11 @@ on_reboot boot_cooldown
 
 : repl read_line eval_line repl ;
 
-:: crash skip
+:: force_save pure
+	dictionary.__updated = true
+;;
+: crash force_save crash_internal ;
+:: crash_internal skip
 	if os.exit then
 		os.exit()
 	else

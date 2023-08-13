@@ -1,11 +1,21 @@
 import open from io
 
+-- TODO: rework set_success() to not force a full save every second
+
 -- FIXME: WHY IS THIS STATE FILE 1 MEGABYTE.
 -- https://p.sc3.io/jbXrceRMr6
 
 DEBUG = false
 
 args = {...}
+
+make_facade = (dict) -> 
+	return setmetatable {__updated: false}, {
+		__index: dict
+		__newindex: (table, key, value) ->
+			table.__updated = true
+			dict[key] = value
+	}
 
 -- get the code as a string
 read_file = (name) ->
@@ -33,7 +43,6 @@ rename_file = (old, new) ->
 	else
 		os.rename old, new
 
--- FIXME FIXME FIXME: THIS IS SLOW AF AND IT'S CAUSING PROBLEMS
 -- serialization and deserialization
 serialize = (o) ->
 	t = type o
@@ -88,6 +97,7 @@ pop = ->
 -- lua code is a string to be evaluated
 -- moonwalk code is a list of words to be evaluated
 local dictionary
+local dictionary_facade
 
 -- definitions recursively call eval so here it is
 local eval
@@ -143,14 +153,16 @@ unget_word = (word) ->
 
 -- user-defined lua functions, not to be called from moonwalk but from lua
 local user_env
+local user_env_facade
 local checkpoint
 restore_env = (old_env) ->
 	user_env = {}
+	user_env_facade = make_facade user_env
 	setmetatable user_env, {__index: _G}
 	for k,v in pairs(old_env)
 		user_env[k] = v
 		if "function" == type user_env[k]
-			setfenv user_env[k], user_env
+			setfenv user_env[k], user_env_facade
 	-- due to setfenv issues these have to be redefined
 	-- which means users can't overwrite them sadly
 	-- (the issue is upvalues not being preserved)
@@ -159,13 +171,12 @@ restore_env = (old_env) ->
 	user_env.get_word = get_word
 	user_env.get_word_raw = get_word_raw
 	user_env.unget_word = unget_word
-	user_env.dictionary = dictionary
+	user_env.dictionary = dictionary_facade
 	--user_env.parse = parse
 	user_env.read_file = read_file
 	user_env.serialize = serialize
 	user_env.deserialize = deserialize
 	user_env.checkpoint = checkpoint
-	user_env
 restore_task_queue = (old_task_queue) ->
 	task_queue = old_task_queue
 restore_stack = (old_stack, old_stack_index) ->
@@ -173,10 +184,29 @@ restore_stack = (old_stack, old_stack_index) ->
 	stack_index = old_stack_index
 restore_dictionary = (old_dictionary) ->
 	dictionary = old_dictionary
-save_state = -> 
-	-- FIXME: env and dict make up almost the entire state in volume
-	-- TODO: monitor for changes and write new state files that modify an initial snapshot
-	-- (use __index and __newindex in a metatable to monitor for changes)
+	dictionary_facade = make_facade dictionary
+save_state_mini = ->
+	current_state = {
+		stack: data_stack
+		task_queue: task_queue
+		--env: user_env
+		--dictionary: dictionary
+		stack_index: stack_index
+	}
+	str = serialize current_state
+	delete_file "new_state_mini.valid"
+	write_file "new_state_mini.state", str
+	write_file "new_state_mini.valid", "true"
+
+	delete_file "current_state_mini.valid"
+	write_file "current_state_mini.state", str
+	write_file "current_state_mini.valid", "true"
+
+	delete_file "new_state_mini.valid"
+	delete_file "new_state_mini.state"
+	
+save_state_full = -> 
+	-- env and dict make up almost the entire state in volume
 	current_state = {
 		stack: data_stack
 		task_queue: task_queue
@@ -186,18 +216,31 @@ save_state = ->
 	}
 	str = serialize current_state
 	delete_file "new_state.valid"
+	delete_file "new_state_mini.valid"
 	write_file "new_state.state", str
 	write_file "new_state.valid", "true"
 
 	delete_file "current_state.valid"
+	delete_file "current_state_mini.valid"
 	write_file "current_state.state", str
 	write_file "current_state.valid", "true"
 
 	delete_file "new_state.valid"
 	delete_file "new_state.state"
+
+save_state = ->
+	if dictionary_facade.__updated == false and user_env_facade.__updated == false then
+		--print "MINI SAVE STATE"
+		save_state_mini!
+	else
+		--print "FULL SAVE STATE"
+		save_state_full!
+		dictionary_facade.__updated = false
+		user_env_facade.__updated = false
+
 store_state = save_state
 checkpoint = save_state
-restore_state = -> 
+fetch_state_full = ->
 	str = nil
 	if not str
 		str = read_file "current_state.state"
@@ -211,6 +254,25 @@ restore_state = ->
 		if valid ~= "true"
 			str = nil
 
+	return str
+fetch_state_mini = ->
+	str = nil
+	if not str
+		str = read_file "current_state_mini.state"
+		valid = read_file "current_state_mini.valid"
+		if valid ~= "true"
+			str = nil
+
+	if not str
+		str = read_file "new_state_mini.state"
+		valid = read_file "new_state_mini.valid"
+		if valid ~= "true"
+			str = nil
+
+	return str
+	
+restore_state = -> 
+	str = fetch_state_full!
 	if args[1]
 		str = nil
 
@@ -218,6 +280,12 @@ restore_state = ->
 	if str
 		--print "OLD STATE GOTTEN"
 		old_state = deserialize str
+		str = fetch_state_mini!
+		if str
+			old_state_mini = deserialize str
+			old_state.stack = old_state_mini.stack
+			old_state.task_queue = old_state_mini.task_queue
+			old_state.stack_index = old_state_mini.stack_index
 	else
 		--print "NEW STATE CREATED"
 		local new_task_queue
@@ -254,7 +322,7 @@ eval_lua = (body) ->
 		if not f then
 			print body
 			error "INVALID LUA DEFINITION"
-		setfenv f, user_env
+		setfenv f, user_env_facade
 		dictionary_lua_cache[body] = f
 	f!
 
